@@ -17,7 +17,10 @@ async def handle_new_message(event):
 
         if event.is_private and (not event.sender.bot):
 
-            message = f"Message from: {sender.first_name} {sender.last_name}\n\n" + event.raw_text
+            message = (
+                f"Message from: {sender.first_name} {sender.last_name}\n\n"
+                + event.raw_text
+            )
 
             response = await respond_on_message(message=message)
 

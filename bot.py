@@ -40,7 +40,7 @@ async def command_start_handler(message: Message) -> None:
 
 
 @router.message()
-async def echo_handler(message: Message) -> None:
+async def message_handler(message: Message) -> None:
     try:
         response = await respond_on_message(message=message.text)
         await message.reply(response, parse_mode=ParseMode.MARKDOWN)
