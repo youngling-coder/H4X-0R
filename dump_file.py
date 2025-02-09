@@ -7,10 +7,10 @@ from settings import h4x0r_settings
 
 
 def read_dump_file(filename: str):
-    
+
     filename = f"{filename}.pkl"
     dump_file_path = os.path.join(h4x0r_settings.DUMP_FILES_PATH, filename)
-    
+
     if os.path.exists(dump_file_path):
         with open(dump_file_path, "rb") as chat_file:
             obj = pickle.load(chat_file)
@@ -38,5 +38,5 @@ def write_dump_file(filename: str, obj: Any) -> None:
         try:
             with open(dump_file_path, "wb") as chat_file:
                 pickle.dump(obj, chat_file)
-        except:
+        except Exception as e:
             logging.error(f"Couldn't create/update {filename} dump file: {e}")

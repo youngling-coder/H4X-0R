@@ -32,6 +32,7 @@ def get_chat(title: str) -> Optional[ChatSession]:
 
     return
 
+
 def create_new_chat(title: str, type_: str, participants: dict) -> ChatSession:
 
     global INSTRUCTIONS
@@ -42,7 +43,7 @@ def create_new_chat(title: str, type_: str, participants: dict) -> ChatSession:
 ### You should call him/her: {", ".join([participants[username] for username in participants.keys()])}
 (If the user's full name is not provided, you can but NOT required to politely ask for user's name)
 """
-    
+
     chat = model.start_chat(
         history=[
             {
@@ -65,12 +66,14 @@ def create_new_chat(title: str, type_: str, participants: dict) -> ChatSession:
     return chat
 
 
-async def respond_on_message(message: str, chat_name: str, chat_object: ChatSession) -> str:
+async def respond_on_message(
+    message: str, chat_name: str, chat_object: ChatSession
+) -> str:
     try:
         response = await chat_object.send_message_async(content=message)
         write_dump_file(chat_name, chat_object.history)
         return response.text
-    
+
     except Exception as e:
         logging.error(f"Error during chat interaction: {e}")
         return "Couldn't generate an answer. Please try again"
