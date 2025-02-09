@@ -10,6 +10,7 @@ class H4X0RSettings(BaseSettings):
     OWNER_USERNAME: str
     GOOGLE_API: str
     IS_ENABLED: bool = False
+    DUMP_FILES_PATH: str
 
     class Config:
         env_file = ".env"
