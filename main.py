@@ -11,7 +11,7 @@ from assistant import client
 from bot import router
 
 
-logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
 dp = Dispatcher()
 dp.include_router(router)
