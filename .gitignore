@@ -175,3 +175,6 @@ cython_debug/
 
 # Session files
 *.session
+
+# Pickle files
+*.pkl
