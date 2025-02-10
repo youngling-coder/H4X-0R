@@ -4,11 +4,10 @@ from aiogram.enums.parse_mode import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.client.default import DefaultBotProperties
 
-from func import escape_markdown, photo_to_pil_object
+from func import escape_markdown, photo_to_pil_object, get_chat_members
 from settings import h4x0r_settings
 from keyboards import menu_keyboard_markup, enable_button, disable_button
 from llm import respond_on_message, create_new_chat, get_chat
-from assistant import client
 
 
 H4X0R_bot = Bot(
@@ -73,12 +72,14 @@ async def message_handler(message: Message) -> None:
 
     chat_type = message.chat.type
 
-    if chat_type in ("group", "supergroup") and ((message.text or message.caption) or message.photo):
+    if chat_type in ("group", "supergroup") and (
+        (message.text or message.caption) or message.photo
+    ):
         title = message.chat.id
         chat = get_chat(title=title)
 
         if not chat:
-            participants = await client.get_participants(message.chat.id)
+            participants = await get_chat_members(message.chat.id)
 
             participants = {
                 (

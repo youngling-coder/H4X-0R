@@ -9,20 +9,21 @@ from google.generativeai.generative_models import ChatSession
 
 from dump_file import write_dump_file, read_dump_file
 
+
 def get_instructions() -> str | None:
-    
+
     instructions = None
 
     try:
         with open("instructions.md", "r") as instructions_file:
             instructions = instructions_file.read()
 
-
     except Exception as e:
         logging.error(f"An error occurred while reading H4X-0R instrucions: {e}")
 
     finally:
         return instructions
+
 
 genai.configure(api_key=h4x0r_settings.GOOGLE_API)
 
@@ -51,7 +52,6 @@ def create_new_chat(title: str, type_: str, participants: dict) -> ChatSession:
 ### You should call him/her: {", ".join([participants[username] for username in participants.keys()])}
 (If the user's full name is not provided, you can but NOT required to politely ask for user's name)
 """
-    
 
     chat = model.start_chat(
         history=[
@@ -83,9 +83,9 @@ async def respond_on_message(
 
         if len(message) > 1:
             chat_object.history.pop(-2)
-        
+
         truncate_history(chat_object)
-        
+
         write_dump_file(chat_name, chat_object.history)
         return f"🤖: {response.text}"
 

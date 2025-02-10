@@ -11,7 +11,6 @@ from google.generativeai.generative_models import ChatSession
 from settings import h4x0r_settings
 
 
-
 client = TelegramClient("session", h4x0r_settings.APP_ID, h4x0r_settings.API_HASH)
 
 
