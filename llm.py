@@ -72,7 +72,7 @@ async def respond_on_message(
     try:
         response = await chat_object.send_message_async(content=message)
         write_dump_file(chat_name, chat_object.history)
-        return response.text
+        return f"🤖: {response.text}"
 
     except Exception as e:
         logging.error(f"Error during chat interaction: {e}")
