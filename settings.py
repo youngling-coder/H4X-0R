@@ -11,6 +11,7 @@ class H4X0RSettings(BaseSettings):
     GOOGLE_API: str
     IS_ENABLED: bool = False
     DUMP_FILES_PATH: str
+    LLM_NAME: str
 
     class Config:
         env_file = ".env"
