@@ -35,7 +35,7 @@ async def photo_to_pil_object(photo: PhotoSize):
 
 
 def truncate_history(chat_object: ChatSession):
-    
+
     while (
         sum(sys.getsizeof(str(item)) for item in chat_object.history)
         > h4x0r_settings.DUMP_FILE_MAXIMUM_SIZE_BYTES

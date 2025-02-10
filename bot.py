@@ -12,9 +12,9 @@ from assistant import client
 
 
 H4X0R_bot = Bot(
-        token=h4x0r_settings.TELEGRAM_BOT_TOKEN,
-        default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN),
-    )
+    token=h4x0r_settings.TELEGRAM_BOT_TOKEN,
+    default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN),
+)
 
 router = Router()
 
@@ -93,14 +93,15 @@ async def message_handler(message: Message) -> None:
             )
 
         message_text = message.text
-                
+
         if message.photo:
             message_text = message.caption
             image = await photo_to_pil_object(message.photo[-1])
 
             final_message = [
                 f"message by: {message.from_user.username} ({message.from_user.first_name} {message.from_user.last_name})\n\n"
-                + message_text, image
+                + message_text,
+                image,
             ]
         else:
             final_message = (
