@@ -23,7 +23,6 @@ async def photo_to_pil_object(photo: PhotoSize):
 
     file_info = await H4X0R_bot.get_file(photo.file_id)
     file_url = f"https://api.telegram.org/file/bot{h4x0r_settings.TELEGRAM_BOT_TOKEN}/{file_info.file_path}"
-    print(file_url)
 
     async with aiohttp.ClientSession() as session:
         async with session.get(file_url) as response:
