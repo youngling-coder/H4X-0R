@@ -4,10 +4,19 @@ import re
 import io
 
 from PIL import Image
-from google.generativeai.generative_models import ChatSession
+from telethon import TelegramClient
 from aiogram.types.photo_size import PhotoSize
+from google.generativeai.generative_models import ChatSession
 
 from settings import h4x0r_settings
+
+
+
+client = TelegramClient("session", h4x0r_settings.APP_ID, h4x0r_settings.API_HASH)
+
+
+async def get_chat_members(chat_id: int):
+    return await client.get_participants(chat_id)
 
 
 def escape_markdown(text: str) -> str:
