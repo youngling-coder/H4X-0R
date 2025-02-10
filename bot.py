@@ -4,7 +4,7 @@ from aiogram.enums.parse_mode import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.client.default import DefaultBotProperties
 
-from func import escape_markdown
+from func import escape_markdown, photo_to_pil_object
 from settings import h4x0r_settings
 from keyboards import menu_keyboard_markup, enable_button, disable_button
 from llm import respond_on_message, create_new_chat, get_chat
@@ -73,7 +73,7 @@ async def message_handler(message: Message) -> None:
 
     chat_type = message.chat.type
 
-    if chat_type in ("group", "supergroup") and message.text:
+    if chat_type in ("group", "supergroup") and (message.text or message.caption):
         title = message.chat.id
         chat = get_chat(title=title)
 
@@ -93,13 +93,23 @@ async def message_handler(message: Message) -> None:
             )
 
         message_text = message.text
-        message_text = (
-            f"message by: {message.from_user.username} ({message.from_user.first_name} {message.from_user.last_name})\n\n"
-            + message_text
-        )
+                
+        if message.photo:
+            message_text = message.caption
+            image = await photo_to_pil_object(message.photo[-1])
+
+            final_message = [
+                f"message by: {message.from_user.username} ({message.from_user.first_name} {message.from_user.last_name})\n\n"
+                + message_text, image
+            ]
+        else:
+            final_message = (
+                f"message by: {message.from_user.username} ({message.from_user.first_name} {message.from_user.last_name})\n\n"
+                + message_text
+            )
 
         response = await respond_on_message(
-            message=message_text, chat_name=str(message.chat.id), chat_object=chat
+            message=final_message, chat_name=str(message.chat.id), chat_object=chat
         )
 
         await message.reply(escape_markdown(response), parse_mode=ParseMode.MARKDOWN)
