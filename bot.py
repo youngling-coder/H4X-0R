@@ -73,7 +73,7 @@ async def message_handler(message: Message) -> None:
 
     chat_type = message.chat.type
 
-    if chat_type in ("group", "supergroup") and (message.text or message.caption):
+    if chat_type in ("group", "supergroup") and ((message.text or message.caption) or message.photo):
         title = message.chat.id
         chat = get_chat(title=title)
 
@@ -92,22 +92,19 @@ async def message_handler(message: Message) -> None:
                 title=title, type_=chat_type, participants=participants
             )
 
-        message_text = message.text
+        final_message = [
+            f"message by: {message.from_user.username} ({message.from_user.first_name} {message.from_user.last_name})\n\n"
+        ]
 
         if message.photo:
-            message_text = message.caption
+            if message.caption:
+                final_message[0] += message.caption
             image = await photo_to_pil_object(message.photo[-1])
 
-            final_message = [
-                f"message by: {message.from_user.username} ({message.from_user.first_name} {message.from_user.last_name})\n\n"
-                + message_text,
-                image,
-            ]
+            final_message.append(image)
+
         else:
-            final_message = (
-                f"message by: {message.from_user.username} ({message.from_user.first_name} {message.from_user.last_name})\n\n"
-                + message_text
-            )
+            final_message[0] += message.text
 
         response = await respond_on_message(
             message=final_message, chat_name=str(message.chat.id), chat_object=chat
