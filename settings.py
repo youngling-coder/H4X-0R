@@ -12,6 +12,8 @@ class H4X0RSettings(BaseSettings):
     IS_ENABLED: bool = False
     DUMP_FILES_PATH: str
     LLM_NAME: str
+    DUMP_FILE_MAXIMUM_SIZE_BYTES: int
+    DUMP_FILE_MAXIMUM_ITEMS_COUNT: int
 
     class Config:
         env_file = ".env"
