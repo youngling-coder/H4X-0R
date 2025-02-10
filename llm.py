@@ -1,6 +1,8 @@
 import logging
+import sys
 from typing import Optional
 
+from func import truncate_history
 from settings import h4x0r_settings
 import google.generativeai as genai
 from google.generativeai.generative_models import ChatSession
@@ -78,6 +80,9 @@ async def respond_on_message(
 ) -> str:
     try:
         response = await chat_object.send_message_async(content=message)
+
+        truncate_history(chat_object)
+        
         write_dump_file(chat_name, chat_object.history)
         return f"🤖: {response.text}"
 
