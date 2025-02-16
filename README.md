@@ -1,4 +1,4 @@
-# H4X-0R ASSISTANT
+# H4X-0R Hector
 
 ![H4X-0R Photo](img/H4X0R.png)
 
