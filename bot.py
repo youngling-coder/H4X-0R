@@ -33,7 +33,7 @@ async def command_start_handler(message: Message) -> None:
 
         if not chat:
             chat = create_new_chat(
-                title=username, type_="private", participants={username: full_name}
+                title=username
             )
 
         response = await respond_on_message(
@@ -61,18 +61,9 @@ async def message_handler(message: Message) -> None:
         chat = get_chat(title=title)
 
         if not chat:
-            participants = await get_chat_members(message.chat.id)
 
-            participants = {
-                (
-                    participant.username
-                    if participant.username
-                    else str(participant.id)
-                ): f"{participant.first_name} {participant.last_name}"
-                for participant in participants
-            }
             chat = create_new_chat(
-                title=title, type_=chat_type, participants=participants
+                title=title
             )
 
         final_message = [

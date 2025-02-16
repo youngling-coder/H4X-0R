@@ -43,7 +43,7 @@ def get_chat(title: str) -> Optional[ChatSession]:
     return
 
 
-def create_new_chat(title: str, type_: str, participants: dict) -> ChatSession:
+def create_new_chat(title: str) -> ChatSession:
 
     instructions = get_instructions()
     instructions += f"""
