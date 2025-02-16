@@ -18,25 +18,7 @@ H4X0R_bot = Bot(
 router = Router()
 
 
-@router.message(lambda message: message.text == enable_button.text)
-async def start_hector_assistant(message: Message):
-    if not h4x0r_settings.IS_ENABLED:
-        h4x0r_settings.IS_ENABLED = True
-        await message.reply("☑️ Hector is enabled!")
-    else:
-        await message.reply("Hector is already enabled!")
-
-
-@router.message(lambda message: message.text == disable_button.text)
-async def stop_hector_assistant(message: Message):
-    if h4x0r_settings.IS_ENABLED:
-        h4x0r_settings.IS_ENABLED = False
-        await message.reply("☑️ Hector is disabled!")
-    else:
-        await message.reply("Hector is already disabled!")
-
-
-@router.message(CommandStart())
+@router.message(Command("hector"))
 async def command_start_handler(message: Message) -> None:
 
     username = (
