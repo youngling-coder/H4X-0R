@@ -46,12 +46,6 @@ def get_chat(title: str) -> Optional[ChatSession]:
 def create_new_chat(title: str) -> ChatSession:
 
     instructions = get_instructions()
-    instructions += f"""
-### This chat type is a: {type_}
-### This chat is with users: {", ".join([username for username in participants.keys()])}
-### You should call him/her: {", ".join([participants[username] for username in participants.keys()])}
-(If the user's full name is not provided, you can but NOT required to politely ask for user's name)
-"""
 
     chat = model.start_chat(
         history=[
@@ -60,13 +54,7 @@ def create_new_chat(title: str) -> ChatSession:
                 "parts": [
                     instructions,
                 ],
-            },
-            {
-                "role": "model",
-                "parts": [
-                    "I got you!",
-                ],
-            },
+            }
         ]
     )
 
@@ -87,7 +75,7 @@ async def respond_on_message(
         truncate_history(chat_object)
 
         write_dump_file(chat_name, chat_object.history)
-        return f"🤖: {response.text}"
+        return response.text
 
     except Exception as e:
         logging.error(f"Error during chat interaction: {e}")
