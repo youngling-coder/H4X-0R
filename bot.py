@@ -31,9 +31,7 @@ async def command_start_handler(message: Message) -> None:
         chat = get_chat(title=username)
 
         if not chat:
-            chat = create_new_chat(
-                title=username
-            )
+            chat = create_new_chat(title=username)
 
         response = await respond_on_message(
             message="Introduce yourself to your owner in a brief form and tell about yourself.",
@@ -60,9 +58,7 @@ async def message_handler(message: Message) -> None:
 
         if not chat:
 
-            chat = create_new_chat(
-                title=title
-            )
+            chat = create_new_chat(title=title)
 
         final_message = [
             f"message by: {message.from_user.username} ({message.from_user.first_name} {message.from_user.last_name})\n\n"
@@ -83,4 +79,6 @@ async def message_handler(message: Message) -> None:
         )
 
         if response.strip() != h4x0r_settings.EMPTY_ANSWER_PLACEHOLDER.strip():
-            await message.reply(escape_markdown(response), parse_mode=ParseMode.MARKDOWN)
+            await message.reply(
+                escape_markdown(response), parse_mode=ParseMode.MARKDOWN
+            )

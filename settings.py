@@ -14,6 +14,7 @@ class H4X0RSettings(BaseSettings):
     LLM_NAME: str
     EMPTY_ANSWER_PLACEHOLDER: str
     DUMP_FILE_MAXIMUM_ITEMS_COUNT: int
+
     class Config:
         env_file = ".env"
 
