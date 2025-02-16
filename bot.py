@@ -84,4 +84,5 @@ async def message_handler(message: Message) -> None:
             message=final_message, chat_name=str(message.chat.id), chat_object=chat
         )
 
-        await message.reply(escape_markdown(response), parse_mode=ParseMode.MARKDOWN)
+        if response.strip() != h4x0r_settings.EMPTY_ANSWER_PLACEHOLDER.strip():
+            await message.reply(escape_markdown(response), parse_mode=ParseMode.MARKDOWN)
