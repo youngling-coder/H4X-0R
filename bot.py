@@ -1,12 +1,11 @@
 from aiogram import Router, Bot
 from aiogram.types import Message
 from aiogram.enums.parse_mode import ParseMode
-from aiogram.filters import CommandStart
+from aiogram.filters import Command
 from aiogram.client.default import DefaultBotProperties
 
-from func import escape_markdown, photo_to_pil_object, get_chat_members
+from func import escape_markdown, photo_to_pil_object
 from settings import h4x0r_settings
-from keyboards import menu_keyboard_markup, enable_button, disable_button
 from llm import respond_on_message, create_new_chat, get_chat
 
 
@@ -44,7 +43,6 @@ async def command_start_handler(message: Message) -> None:
 
         await message.reply(
             escape_markdown(response),
-            reply_markup=menu_keyboard_markup,
             parse_mode=ParseMode.MARKDOWN,
         )
 
