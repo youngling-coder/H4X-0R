@@ -34,11 +34,7 @@ async def photo_to_pil_object(photo: PhotoSize):
 
 def truncate_history(chat_object: ChatSession):
 
-    while (
-        sum(sys.getsizeof(str(item)) for item in chat_object.history)
-        > h4x0r_settings.DUMP_FILE_MAXIMUM_SIZE_BYTES
-        or len(chat_object.history) > h4x0r_settings.DUMP_FILE_MAXIMUM_ITEMS_COUNT
-    ):
+    while len(chat_object.history) > h4x0r_settings.DUMP_FILE_MAXIMUM_ITEMS_COUNT:
         if not chat_object.history:
             break
         chat_object.history.pop(0)
