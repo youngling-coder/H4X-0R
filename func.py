@@ -37,4 +37,4 @@ def truncate_history(chat_object: ChatSession):
     while len(chat_object.history) > h4x0r_settings.DUMP_FILE_MAXIMUM_ITEMS_COUNT:
         if not chat_object.history:
             break
-        chat_object.history.pop(0)
+        chat_object.history.pop(1)
