@@ -7,8 +7,6 @@ class H4X0RSettings(BaseSettings):
     CLOUD_PORT: int
 
     TELEGRAM_BOT_TOKEN: str
-    APP_ID: int
-    API_HASH: str
     PHONE_NUMBER: str
     OWNER_USERNAME: str
     GOOGLE_API: str
