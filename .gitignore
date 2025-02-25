@@ -181,3 +181,9 @@ cython_debug/
 
 # Instruction file
 instructions.md
+
+# Cookies file
+cookies.txt
+
+# Music folder
+music/
