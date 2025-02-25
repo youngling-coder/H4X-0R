@@ -3,6 +3,9 @@ from pydantic_settings import BaseSettings
 
 class H4X0RSettings(BaseSettings):
 
+    CLOUD_URL: str
+    CLOUD_PORT: int
+
     TELEGRAM_BOT_TOKEN: str
     APP_ID: int
     API_HASH: str
@@ -12,8 +15,8 @@ class H4X0RSettings(BaseSettings):
     IS_ENABLED: bool = False
     DUMP_FILES_PATH: str
     LLM_NAME: str
-    EMPTY_ANSWER_PLACEHOLDER: str
     DUMP_FILE_MAXIMUM_ITEMS_COUNT: int
+    MUSIC_FOLDER: str
 
     class Config:
         env_file = ".env"
