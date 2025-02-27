@@ -1,11 +1,8 @@
-import asyncio
-
 from aiogram import Router, Bot
 from aiogram import types
 from aiogram.enums.parse_mode import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.client.default import DefaultBotProperties
-import yt_dlp
 from youtubesearchpython import VideosSearch
 
 from func import escape_markdown, photo_to_pil_object
@@ -19,42 +16,6 @@ H4X0R_bot = Bot(
 )
 
 router = Router()
-
-
-async def run_blocking(coro):
-    return await asyncio.to_thread(coro)
-
-
-@router.callback_query()
-async def download_selected_music(query: types.CallbackQuery):
-    link = query.data
-    msg_filler = await query.message.answer("🤖 Downloading ...")
-
-    def sync_download():
-        ydl_opts = {
-            "format": "bestaudio/best",
-            "postprocessors": [{
-                "key": "FFmpegExtractAudio",
-                "preferredcodec": "mp3",
-                "preferredquality": "192",
-            }],
-            "cookiefile": "cookies.txt",
-            "outtmpl": f"{h4x0r_settings.MUSIC_FOLDER}/%(title)s.%(ext)s",
-        }
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            return ydl.extract_info(link, download=True)
-
-    try:
-        info = await run_blocking(sync_download)
-        filename = info["requested_downloads"][0]["filepath"]
-        audio = types.FSInputFile(filename)
-        await query.message.answer_audio(audio=audio, caption="✨ _[Hector Music](https://t.me/h4x0r\\_hector\\_music\\_bot)_ ✨", parse_mode=ParseMode.MARKDOWN_V2)
-
-    except Exception as e:
-        await query.message.answer(f"❌ An error occurred while downloading!")
-        print(e)
-    finally:
-        await query.message.chat.delete_message(msg_filler.message_id)
 
 
 @router.message(CommandStart())
@@ -83,31 +44,6 @@ async def command_start_handler(message: types.Message) -> None:
             escape_markdown(response),
             parse_mode=ParseMode.MARKDOWN,
         )
-
-
-@router.message(lambda message: message.text if not message.text else message.text.lower().startswith("music"))
-async def music_handler(message: types.Message):
-
-    query = message.text.lower().replace("music", "").lstrip()
-
-    if query:
-
-        search = VideosSearch(query, limit=10)
-        results = search.result()
-
-        if not results:
-            await message.reply("❌ Music not found!")
-            return
-        
-        results = results["result"]
-
-        tracklist_markup = types.InlineKeyboardMarkup(inline_keyboard=[[]])
-
-        for audio in results:
-            tracklist_markup.inline_keyboard.append([types.InlineKeyboardButton(text=audio["title"], callback_data=audio["link"])])
-
-
-        await message.reply("✅ Search results:", reply_markup=tracklist_markup)
 
 
 @router.message()
