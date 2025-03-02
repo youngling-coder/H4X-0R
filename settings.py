@@ -15,6 +15,16 @@ class H4X0RSettings(BaseSettings):
     LLM_NAME: str
     DUMP_FILE_MAXIMUM_ITEMS_COUNT: int
     MUSIC_FOLDER: str
+    BOT_NAMES: tuple = (
+        "hector",
+        "гектор",
+        "железяка",
+        "байтоголовый",
+        "битоголовый",
+        "бот",
+        "долбот",
+        "иишнутый",
+    )
 
     class Config:
         env_file = ".env"
