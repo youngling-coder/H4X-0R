@@ -6,7 +6,7 @@ from aiogram.enums.parse_mode import ParseMode
 from aiogram.filters import CommandStart, Filter, Command
 from aiogram.client.default import DefaultBotProperties
 
-from func import escape_markdown, photo_to_pil_object
+from func import escape_markdown, photo_to_pil_object, sticker_to_pil_object
 from settings import h4x0r_settings
 from llm import respond_on_message, create_new_chat, get_chat
 
@@ -90,7 +90,7 @@ async def message_handler(message: types.Message) -> None:
 
 async def get_answer(message: types.Message):
     is_content_appropriate = (
-        lambda message: message.text or message.caption or message.photo
+        lambda message: message.text or message.caption or message.photo or message.sticker
     )
     is_group = lambda message: message.chat.type in ("group", "supergroup")
 
@@ -103,6 +103,7 @@ async def get_answer(message: types.Message):
 
         title = message.chat.id
         chat = get_chat(title=title)
+        image = None
 
         if not chat:
 
@@ -117,10 +118,14 @@ async def get_answer(message: types.Message):
                 final_message[0] += message.caption
             image = await photo_to_pil_object(message.photo[-1])
 
-            final_message.append(image)
+        elif message.sticker:
+            image = await sticker_to_pil_object(message.sticker)
 
         else:
             final_message[0] += message.text
+
+        if image:
+            final_message.append(image)
 
         response = await respond_on_message(
             message=final_message, chat_name=str(message.chat.id), chat_object=chat
