@@ -10,10 +10,10 @@ instructions_obj = Content({"role": "user", "parts": [Part(text=get_instructions
 
 def update_instructions():
     try:
-        for pickle_file in os.listdir(h4x0r_settings.DUMP_FILES_PATH):
+        for pickle_file in os.listdir(h4x0r_settings.DUMP_FILES_FOLDER):
 
             obj = None
-            full_path = os.path.join(h4x0r_settings.DUMP_FILES_PATH, pickle_file)
+            full_path = os.path.join(h4x0r_settings.DUMP_FILES_FOLDER, pickle_file)
 
             with open(full_path, "rb") as f:
                 obj = pickle.load(f)

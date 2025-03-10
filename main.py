@@ -4,10 +4,11 @@ import logging
 
 from aiogram import Dispatcher
 
-from bot import router, H4X0R_bot
-
+from handlers import router
+from bot import H4X0R_bot
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+
 
 dp = Dispatcher()
 dp.include_router(router)

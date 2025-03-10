@@ -13,14 +13,13 @@ from settings import h4x0r_settings
 from bot import H4X0R_bot
 
 
-
 async def voice_to_text(file_id: str):
     text = ""
     recognizer = sr.Recognizer()
 
     file_info = await H4X0R_bot.get_file(file_id)
     file_path = file_info.file_path
-    
+
     if not file_path:
         return "Ошибка: не удалось получить путь к файлу"
 
@@ -42,7 +41,7 @@ async def voice_to_text(file_id: str):
         finally:
             os.remove(wav_path)
             return ""
-    
+
     return text
 
 
@@ -60,14 +59,13 @@ async def photo_to_pil_object(photo: PhotoSize):
     return image
 
 
-
 async def sticker_to_pil_object(sticker: Sticker):
 
     if sticker.is_animated or sticker.is_video:
         photo = await photo_to_pil_object(photo=sticker.thumbnail)
 
         return photo
-    
+
     file_info = await H4X0R_bot.get_file(sticker.file_id)
     file_url = f"https://api.telegram.org/file/bot{h4x0r_settings.TELEGRAM_BOT_TOKEN}/{file_info.file_path}"
 
@@ -78,7 +76,6 @@ async def sticker_to_pil_object(sticker: Sticker):
     image = Image.open(io.BytesIO(image_bytes))
 
     return image
-
 
 
 def truncate_history(chat_object: ChatSession):
