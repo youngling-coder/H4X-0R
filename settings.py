@@ -2,7 +2,6 @@ from pydantic_settings import BaseSettings
 
 
 class H4X0RSettings(BaseSettings):
-
     CLOUD_URL: str
     CLOUD_PORT: int
 
@@ -11,10 +10,10 @@ class H4X0RSettings(BaseSettings):
     OWNER_USERNAME: str
     GOOGLE_API: str
     IS_ENABLED: bool = False
-    DUMP_FILES_PATH: str
+    DUMP_FILES_FOLDER: str
     LLM_NAME: str
     DUMP_FILE_MAXIMUM_ITEMS_COUNT: int
-    MUSIC_FOLDER: str
+    VOICE_MESSAGES_FOLDER: str
     BOT_NAMES: tuple = (
         "hector",
         "гектор",
