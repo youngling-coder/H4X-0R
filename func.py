@@ -40,7 +40,6 @@ async def voice_to_text(file_id: str):
             text = recognizer.recognize_google(audio_data, language="ru-RU")
         finally:
             os.remove(wav_path)
-            return ""
 
     return text
 
