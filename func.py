@@ -38,7 +38,7 @@ async def voice_to_text(file_id: str, buffer: int = 20):
 
         try:
             while True:
-                
+
                 audio_data = recognizer.record(source, duration=buffer)
 
                 if not audio_data.frame_data:
@@ -87,4 +87,6 @@ async def sticker_to_pil_object(sticker: Sticker):
 def truncate_history(chat_object: ChatSession):
 
     if len(chat_object.history) > h4x0r_settings.MAXIMUM_MESSAGES_LENGTH:
-        chat_object.history = chat_object.history[1:h4x0r_settings.MAXIMUM_MESSAGES_LENGTH+1]
+        chat_object.history = chat_object.history[
+            1 : h4x0r_settings.MAXIMUM_MESSAGES_LENGTH + 1
+        ]

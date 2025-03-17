@@ -55,8 +55,10 @@ async def what_is_my_name(message: types.Message):
 @router.message(lambda message: message.chat.type in ("group", "supergroup"))
 async def group_message_handler(message: types.Message) -> None:
     if (
-        message.reply_to_message and message.reply_to_message.from_user.is_bot
-    ) or is_activated(message.caption) or is_activated(message.text):
+        (message.reply_to_message and message.reply_to_message.from_user.is_bot)
+        or is_activated(message.caption)
+        or is_activated(message.text)
+    ):
         if is_allowed_content(message):
             await get_answer(message=message)
 
@@ -68,7 +70,13 @@ async def private_message_handler(message: types.Message) -> None:
 
 
 def is_allowed_content(message: types.Message) -> bool:
-    return bool(message.text or message.caption or message.photo or message.sticker or message.voice)
+    return bool(
+        message.text
+        or message.caption
+        or message.photo
+        or message.sticker
+        or message.voice
+    )
 
 
 async def get_answer(message: types.Message):

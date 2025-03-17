@@ -12,7 +12,7 @@ class H4X0RSettings(BaseSettings):
     IS_ENABLED: bool = False
     DATABASE_FILE: str
     LLM_NAME: str
-    DUMP_FILE_MAXIMUM_ITEMS_COUNT: int
+    MAXIMUM_MESSAGES_LENGTH: int
     VOICE_MESSAGES_FOLDER: str
     BOT_NAMES: tuple = (
         "hector",

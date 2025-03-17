@@ -4,9 +4,13 @@ from settings import h4x0r_settings
 
 DATABASE_URL = f"sqlite:///{h4x0r_settings.DATABASE_FILE}"
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False}, echo=False)
+engine = create_engine(
+    DATABASE_URL, connect_args={"check_same_thread": False}, echo=False
+)
 
-SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+SessionLocal = scoped_session(
+    sessionmaker(autocommit=False, autoflush=False, bind=engine)
+)
 
 
 # Dependency for getting DB session

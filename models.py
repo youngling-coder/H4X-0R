@@ -4,6 +4,7 @@ import enum
 
 Base = declarative_base()
 
+
 class UserRole(enum.Enum):
     user = "user"
     model = "model"
@@ -12,16 +13,21 @@ class UserRole(enum.Enum):
 class Chat(Base):
     __tablename__ = "chats"
 
-    id: Mapped[str] = mapped_column(String, nullable=False, unique=True, primary_key=True)
-    messages: Mapped[list["Message"]] = relationship("Message", back_populates="chat", cascade="all, delete")
+    id: Mapped[str] = mapped_column(
+        String, nullable=False, unique=True, primary_key=True
+    )
+    messages: Mapped[list["Message"]] = relationship(
+        "Message", back_populates="chat", cascade="all, delete"
+    )
 
 
 class Message(Base):
     __tablename__ = "messages"
 
-    id: Mapped[int] = mapped_column(Integer, nullable=False, unique=True, primary_key=True)
+    id: Mapped[int] = mapped_column(
+        Integer, nullable=False, unique=True, primary_key=True
+    )
     chat_id: Mapped[str] = mapped_column(ForeignKey("chats.id", ondelete="CASCADE"))
     chat: Mapped["Chat"] = relationship("Chat", back_populates="messages")
     content: Mapped[str] = mapped_column(String, nullable=False)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False)
-    

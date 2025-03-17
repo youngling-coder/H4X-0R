@@ -16,7 +16,12 @@ def get_chat(chat_id: str, db: Session = next(get_db())):
     return db.query(Chat).filter(Chat.id == chat_id).first()
 
 
-def create_message(chat_id: str, content: str, role: Literal["user", "model"], db: Session = next(get_db())):
+def create_message(
+    chat_id: str,
+    content: str,
+    role: Literal["user", "model"],
+    db: Session = next(get_db()),
+):
     message = Message(chat_id=chat_id, role=role, content=content)
     db.add(message)
     db.commit()
@@ -37,18 +42,15 @@ def delete_chat(chat_id: str, db: Session = next(get_db())):
     return False
 
 
-
 def get_chat_history(chat_id: str):
     history = []
-    
+
     for message in get_messages(chat_id=chat_id):
-        
+
         history.append(
-             {
+            {
                 "role": message.role.value,
-                "parts": [
-                    message.content
-                ],
+                "parts": [message.content],
             }
         )
 
