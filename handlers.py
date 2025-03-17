@@ -19,21 +19,17 @@ is_activated = lambda message: message and list(
 @router.message(CommandStart())
 async def command_start_handler(message: types.Message) -> None:
 
-    username = (
-        message.from_user.username
-        if message.from_user.username
-        else message.from_user.id
-    )
+    chat_id = message.chat.id
 
-    if username == h4x0r_settings.OWNER_USERNAME:
-        chat = get_chat(title=username)
+    if chat_id == h4x0r_settings.OWNER_USERNAME:
+        chat = get_chat(chat_id=chat_id)
 
         if not chat:
-            chat = create_new_chat(title=username)
+            chat = create_new_chat(chat_id=chat_id)
 
         response = await respond_on_message(
             message="Introduce yourself to your owner in a brief form and tell about yourself.",
-            chat_name=username,
+            chat_id=chat_id,
             chat_object=chat,
         )
 
@@ -77,12 +73,12 @@ def is_allowed_content(message: types.Message) -> bool:
 
 async def get_answer(message: types.Message):
 
-    title = message.chat.id
-    chat = get_chat(title=title)
+    chat_id = message.chat.id
+    chat = get_chat(chat_id=chat_id)
     image = None
 
     if not chat:
-        chat = create_new_chat(title=title)
+        chat = create_new_chat(chat_id=chat_id)
 
     final_message = [
         f"message by: {message.from_user.username} ({message.from_user.first_name} {message.from_user.last_name})\n\n"
@@ -106,7 +102,7 @@ async def get_answer(message: types.Message):
         final_message.append(image)
 
     response = await respond_on_message(
-        message=final_message, chat_name=str(message.chat.id), chat_object=chat
+        message=final_message, chat_id=str(message.chat.id), chat_object=chat
     )
 
     await message.reply(response, parse_mode=None)
