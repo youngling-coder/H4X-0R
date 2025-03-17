@@ -13,7 +13,7 @@ from settings import h4x0r_settings
 from bot import H4X0R_bot
 
 
-async def voice_to_text(file_id: str):
+async def voice_to_text(file_id: str, buffer: int = 20):
     text = ""
     recognizer = sr.Recognizer()
 
@@ -35,9 +35,16 @@ async def voice_to_text(file_id: str):
     os.remove(ogg_path)
 
     with sr.AudioFile(wav_path) as source:
-        audio_data = recognizer.record(source)
+
         try:
-            text = recognizer.recognize_google(audio_data, language="ru-RU")
+            while True:
+                
+                audio_data = recognizer.record(source, duration=buffer)
+
+                if not audio_data.frame_data:
+                    break
+
+                text += recognizer.recognize_google(audio_data, language="ru-RU")
         finally:
             os.remove(wav_path)
 
@@ -79,7 +86,5 @@ async def sticker_to_pil_object(sticker: Sticker):
 
 def truncate_history(chat_object: ChatSession):
 
-    while len(chat_object.history) > h4x0r_settings.DUMP_FILE_MAXIMUM_ITEMS_COUNT:
-        if not chat_object.history:
-            break
-        chat_object.history.pop(1)
+    if len(chat_object.history) > h4x0r_settings.MAXIMUM_MESSAGES_LENGTH:
+        chat_object.history = chat_object.history[1:h4x0r_settings.MAXIMUM_MESSAGES_LENGTH+1]
