@@ -10,7 +10,7 @@ class H4X0RSettings(BaseSettings):
     OWNER_USERNAME: str
     GOOGLE_API: str
     IS_ENABLED: bool = False
-    DUMP_FILES_FOLDER: str
+    DATABASE_FILE: str
     LLM_NAME: str
     DUMP_FILE_MAXIMUM_ITEMS_COUNT: int
     VOICE_MESSAGES_FOLDER: str
