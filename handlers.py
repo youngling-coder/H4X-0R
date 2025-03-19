@@ -16,6 +16,12 @@ is_activated = lambda message: message and list(
 )
 
 
+@router.message(Command("syscheck"))
+async def system_check_handler(message: types.Message):
+    
+    await message.reply(func.generate_report(message.chat.id), parse_mode=ParseMode.HTML)
+
+
 @router.message(CommandStart())
 async def command_start_handler(message: types.Message) -> None:
 
