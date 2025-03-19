@@ -119,8 +119,18 @@ async def get_answer(message: types.Message):
     if image:
         final_message.append(image)
 
+    start_time = time.perf_counter()
+
     response = await respond_on_message(
-        message=final_message, chat_id=str(message.chat.id), chat_object=chat
+        message=final_message, chat_object=chat
     )
 
-    await message.reply(response, parse_mode=None)
+    for chunk in func.get_chunks_from_message(response):
+    
+        exec_time = time.perf_counter() - start_time
+
+        to_send = f"{chunk}\n⏱️ ~{int(exec_time * 1000)} ms"
+        await message.reply(to_send, parse_mode=None)
+
+    crud.create_message(chat_id, content=final_message[0], role="user")
+    crud.create_message(chat_id, content=response, role="model")
