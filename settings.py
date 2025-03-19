@@ -2,18 +2,15 @@ from pydantic_settings import BaseSettings
 
 
 class H4X0RSettings(BaseSettings):
-    CLOUD_URL: str
-    CLOUD_PORT: int
-
-    TELEGRAM_BOT_TOKEN: str
-    PHONE_NUMBER: str
-    OWNER_USERNAME: str
-    GOOGLE_API: str
-    IS_ENABLED: bool = False
-    DATABASE_FILE: str
+    BOT_NAME: str
+    VERSION: str
+    SECRET_TELEGRAM_BOT_TOKEN: str
+    SECRET_OWNER_CHAT_ID: str
+    SECRET_GOOGLE_API: str
+    SECRET_DATABASE_FILE: str
     LLM_NAME: str
-    MAXIMUM_MESSAGES_LENGTH: int
-    VOICE_MESSAGES_FOLDER: str
+    MAXIMUM_HISTORY_LENGTH: int
+    SECRET_VOICE_MESSAGES_FOLDER: str
     BOT_NAMES: tuple = (
         "hector",
         "гектор",

@@ -23,7 +23,7 @@ def get_instructions() -> str | None:
         return instructions
 
 
-genai.configure(api_key=h4x0r_settings.GOOGLE_API)
+genai.configure(api_key=h4x0r_settings.SECRET_GOOGLE_API)
 
 model = genai.GenerativeModel(model_name=h4x0r_settings.LLM_NAME)
 
@@ -64,7 +64,7 @@ def create_new_chat(chat_id: str) -> ChatSession:
 
 
 async def respond_on_message(
-    message: list, chat_id: str, chat_object: ChatSession
+    message: list,  chat_object: ChatSession
 ) -> str:
     try:
         response = await chat_object.send_message_async(content=message)
@@ -73,9 +73,6 @@ async def respond_on_message(
             chat_object.history.pop(-2)
 
         truncate_history(chat_object)
-
-        crud.create_message(chat_id, content=message[0], role="user")
-        crud.create_message(chat_id, content=response.text, role="model")
 
         return response.text
 

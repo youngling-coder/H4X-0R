@@ -1,12 +1,14 @@
 import random
+import time
 
 from aiogram import Router
 from aiogram import types
 from aiogram.filters import CommandStart, Command
+from aiogram.enums.parse_mode import ParseMode
 
-import func
+import func, crud
 from settings import h4x0r_settings
-from llm import respond_on_message, create_new_chat, get_chat
+from llm import respond_on_message, create_new_chat, get_chat, model
 
 
 router = Router()
@@ -25,9 +27,9 @@ async def system_check_handler(message: types.Message):
 @router.message(CommandStart())
 async def command_start_handler(message: types.Message) -> None:
 
-    chat_id = message.chat.id
+    chat_id = str(message.chat.id)
 
-    if chat_id == h4x0r_settings.OWNER_USERNAME:
+    if chat_id == h4x0r_settings.SECRET_OWNER_CHAT_ID:
         chat = get_chat(chat_id=chat_id)
 
         if not chat:
@@ -35,7 +37,6 @@ async def command_start_handler(message: types.Message) -> None:
 
         response = await respond_on_message(
             message="Introduce yourself to your owner in a brief form and tell about yourself.",
-            chat_id=chat_id,
             chat_object=chat,
         )
 
