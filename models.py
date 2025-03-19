@@ -1,6 +1,7 @@
 from sqlalchemy import String, Integer, ForeignKey, Enum
-from sqlalchemy.orm import mapped_column, Mapped, declarative_base, relationship
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 import enum
+from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
@@ -31,3 +32,12 @@ class Message(Base):
     chat: Mapped["Chat"] = relationship("Chat", back_populates="messages")
     content: Mapped[str] = mapped_column(String, nullable=False)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False)
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[str] = mapped_column(
+        String, nullable=False, unique=True, primary_key=True
+    )
+    reputation: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
