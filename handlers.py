@@ -68,6 +68,9 @@ async def group_message_handler(message: types.Message) -> None:
         if is_allowed_content(message):
             await get_answer(message=message)
 
+    crud.create_user_if_not_exists(message.from_user.id)
+
+
 
 @router.message(lambda message: message.chat.type == "private")
 async def private_message_handler(message: types.Message) -> None:
@@ -86,6 +89,7 @@ def is_allowed_content(message: types.Message) -> bool:
 
 
 async def get_answer(message: types.Message):
+    crud.create_user_if_not_exists(message.from_user.id)
 
     chat_id = message.chat.id
     chat = get_chat(chat_id=chat_id)
