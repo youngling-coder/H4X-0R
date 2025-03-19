@@ -9,6 +9,7 @@ from aiogram.types.photo_size import PhotoSize
 from aiogram.types.sticker import Sticker
 from google.generativeai.generative_models import ChatSession
 
+import crud
 from settings import h4x0r_settings
 from bot import H4X0R_bot
 
@@ -86,7 +87,52 @@ async def sticker_to_pil_object(sticker: Sticker):
 
 def truncate_history(chat_object: ChatSession):
 
-    if len(chat_object.history) > h4x0r_settings.MAXIMUM_MESSAGES_LENGTH:
+    if len(chat_object.history) > h4x0r_settings.MAXIMUM_HISTORY_LENGTH:
         chat_object.history = chat_object.history[
-            1 : h4x0r_settings.MAXIMUM_MESSAGES_LENGTH + 1
+            1 : h4x0r_settings.MAXIMUM_HISTORY_LENGTH + 1
         ]
+
+
+def get_chunks_from_message(text: str):
+
+    if len(text) <= 4096:
+        yield text
+
+    else:
+        words = text.split()
+        part = ""
+
+        for word in words:
+            if len(part + word) < 4096:
+                part += f"{word} "
+                
+            else:
+                yield part
+                part = ""
+        else:
+            if part:
+                yield part
+
+
+def generate_report(chat_id: str):
+
+    settings_dict = h4x0r_settings.model_dump()
+    
+    filtered_settings_dict = {}
+    for key, value in settings_dict.items():
+        if not key.startswith("SECRET_"):
+            filtered_settings_dict[key] = value
+
+    current_messages_amount = crud.get_amount_messages_in_chat(chat_id)
+    messages_percent = current_messages_amount * 100 / h4x0r_settings.MAXIMUM_HISTORY_LENGTH 
+    progress_bar_history = f"[{"🟩" * (rounded_message_percent:=int(messages_percent // 20))}{"⬜️" * (5-rounded_message_percent)}]"
+
+    report = f"""
+<b>🎛 System Healthcheck</b>
+
+<b>🤖 Bot:</b> {h4x0r_settings.BOT_NAME} {h4x0r_settings.VERSION}
+<b>🔧 LLM Version:</b> {h4x0r_settings.LLM_NAME}
+<b>📏 History:</b> {messages_percent}% {progress_bar_history}
+"""
+    
+    return report
