@@ -1,0 +1,51 @@
+from sqlalchemy import select, insert
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from database import db_session_required
+import models, schemas
+from typing import Optional
+
+
+@db_session_required
+async def add_user_to_chat(user_id: int, chat_id: int, db: AsyncSession):
+
+    stmt = select(models.user_chat_association).where(
+        models.user_chat_association.c.user_id == user_id,
+        models.user_chat_association.c.chat_id == chat_id,
+    )
+    exists = (await db.execute(stmt)).first()
+
+    if not exists:
+        stmt = insert(models.user_chat_association).values(
+            user_id=user_id, chat_id=chat_id
+        )
+        await db.execute(stmt)
+        await db.commit()
+
+
+@db_session_required
+async def get_chat(chat_id: int, db: AsyncSession) -> Optional[models.Chat]:
+
+    stmt = select(models.Chat).filter(models.Chat.id == chat_id)
+    result = await db.execute(stmt)
+    chat = result.scalars().first()
+
+    await db.close()
+
+    return chat
+
+
+@db_session_required
+async def create_chat(chat: schemas.Chat, db: AsyncSession):
+
+    chat_exists = await get_chat(chat.id)
+
+    if not chat_exists:
+        chat = models.Chat(**chat.model_dump())
+
+        db.add(chat)
+        await db.commit()
+        await db.refresh(chat)
+        await db.close()
+
+        return chat
