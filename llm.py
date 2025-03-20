@@ -5,7 +5,7 @@ from func import truncate_history
 from settings import h4x0r_settings
 import google.generativeai as genai
 from google.generativeai.generative_models import ChatSession
-import crud
+import crud, schemas
 
 
 def get_instructions() -> str | None:
@@ -28,21 +28,19 @@ genai.configure(api_key=h4x0r_settings.SECRET_GOOGLE_API)
 model = genai.GenerativeModel(model_name=h4x0r_settings.LLM_NAME)
 
 
-def get_chat(chat_id: str) -> Optional[ChatSession]:
-    try:
-        history = crud.get_chat_history(chat_id)
+async def get_chat_session(chat_id: int) -> ChatSession:
 
-        if history:
-            chat = model.start_chat(history=history)
+    history = await crud.get_chat_history(chat_id)
 
-            return chat
-    except Exception as e:
-        logging.error(f"Couldn't read chat object with title {chat_id}: {e}")
+    if history:
+        chat = model.start_chat(history=history)
+    else:
+        chat = await create_new_chat(chat_id=chat_id)
 
-    return
+    return chat
 
 
-def create_new_chat(chat_id: str) -> ChatSession:
+async def create_new_chat(chat_id: int) -> ChatSession:
 
     instructions = get_instructions()
 
@@ -57,8 +55,11 @@ def create_new_chat(chat_id: str) -> ChatSession:
         ]
     )
 
-    crud.create_chat(chat_id=chat_id)
-    crud.create_message(chat_id=chat_id, content=instructions, role="user")
+    await crud.create_chat(
+        schemas.Chat(
+            id=chat_id,
+        )
+    )
 
     return chat
 
