@@ -35,7 +35,7 @@ async def get_messages(
 
     if isinstance(user_id, int):
         stmt = stmt.filter(models.Message.user_id == user_id)
-    
+
     if history_part:
         stmt = stmt.filter(models.Message.history_part == history_part)
 
@@ -50,7 +50,9 @@ async def get_messages(
 async def get_chat_history(chat_id: str) -> list[dict]:
     history = []
 
-    messages: list[models.Message] = await get_messages(chat_id=chat_id, history_part=True)
+    messages: list[models.Message] = await get_messages(
+        chat_id=chat_id, history_part=True
+    )
 
     for message in messages:
 

@@ -32,7 +32,9 @@ async def send_voice_message(message: types.Message):
     exec_time = time.perf_counter() - start_time
 
     telegram_audio = types.FSInputFile(audio_path)
-    sent_message = await message.answer_voice(telegram_audio, caption=f"⏱️ ~{int(exec_time * 1000)} ms")
+    sent_message = await message.answer_voice(
+        telegram_audio, caption=f"⏱️ ~{int(exec_time * 1000)} ms"
+    )
 
     await crud.create_message(
         schemas.Message(
@@ -42,7 +44,7 @@ async def send_voice_message(message: types.Message):
             content=response,
             generation_time_ms=generation_time_ms,
             history_part=True,
-            from_bot=True
+            from_bot=True,
         )
     )
     await temp_message.delete()
@@ -120,7 +122,7 @@ async def group_message_handler(message: types.Message):
                     content=response,
                     generation_time_ms=generation_time_ms,
                     history_part=True,
-                    from_bot=True
+                    from_bot=True,
                 )
             )
 
@@ -142,7 +144,6 @@ async def private_message_handler(message: types.Message):
                 chunk += f"\n⏱️ ~{int(exec_time * 1000)} ms"
             sent_message = await message.reply(chunk, parse_mode=None)
 
-    
         await crud.create_message(
             schemas.Message(
                 id=sent_message.message_id,
@@ -151,7 +152,7 @@ async def private_message_handler(message: types.Message):
                 content=response,
                 generation_time_ms=generation_time_ms,
                 history_part=True,
-                from_bot=True
+                from_bot=True,
             )
         )
 
@@ -197,7 +198,7 @@ async def get_answer(message: types.Message):
     response = await respond_on_message(message=final_message, chat_object=chat_session)
 
     generation_time_ms = int((time.perf_counter() - start_time) * 1000)
-    
+
     await crud.create_message(
         schemas.Message(
             id=message.message_id,
@@ -206,7 +207,7 @@ async def get_answer(message: types.Message):
             content=final_message[0],
             generation_time_ms=0,
             history_part=True,
-            from_bot=False
+            from_bot=False,
         )
     )
 
