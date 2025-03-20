@@ -7,9 +7,9 @@ from aiogram import types
 from aiogram.filters import CommandStart, Command
 from aiogram.enums.parse_mode import ParseMode
 
-import func, crud
+import func, crud, schemas
 from settings import h4x0r_settings
-from llm import respond_on_message, create_new_chat, get_chat
+from llm import respond_on_message, get_chat_session
 
 
 router = Router()
@@ -25,14 +25,26 @@ async def send_voice_message(message: types.Message):
     temp_message = await message.answer("🧠 Generating response...")
     start_time = time.perf_counter()
 
-    response = await get_answer(message)
+    response, generation_time_ms = await get_answer(message)
 
-    await message.edit_text("🎙️ Recording voice...")
+    await temp_message.edit_text("🎙️ Recording voice...")
     audio_path = func.text_to_speech(response)
     exec_time = time.perf_counter() - start_time
 
     telegram_audio = types.FSInputFile(audio_path)
-    await message.answer_voice(telegram_audio, caption=f"⏱️ ~{int(exec_time * 1000)} ms")
+    sent_message = await message.answer_voice(telegram_audio, caption=f"⏱️ ~{int(exec_time * 1000)} ms")
+
+    await crud.create_message(
+        schemas.Message(
+            id=sent_message.message_id,
+            chat_id=message.chat.id,
+            user_id=message.from_user.id,
+            content=response,
+            generation_time_ms=generation_time_ms,
+            history_part=True,
+            from_bot=True
+        )
+    )
     await temp_message.delete()
     os.remove(audio_path)
 
@@ -51,10 +63,7 @@ async def command_start_handler(message: types.Message) -> None:
     chat_id = str(message.chat.id)
 
     if chat_id == h4x0r_settings.SECRET_OWNER_CHAT_ID:
-        chat = get_chat(chat_id=chat_id)
-
-        if not chat:
-            chat = create_new_chat(chat_id=chat_id)
+        chat = get_chat_session(chat_id=chat_id)
 
         response = await respond_on_message(
             message="Introduce yourself to your owner in a brief form and tell about yourself.",
@@ -82,6 +91,9 @@ async def what_is_my_name(message: types.Message):
 
 @router.message(lambda message: message.chat.type in ("group", "supergroup"))
 async def group_message_handler(message: types.Message):
+
+    await crud.create_user_if_not_exists(schemas.User(id=message.from_user.id))
+
     if (
         (message.reply_to_message and message.reply_to_message.from_user.is_bot)
         or is_activated(message.caption)
@@ -89,7 +101,8 @@ async def group_message_handler(message: types.Message):
     ):
         if is_allowed_content(message):
             start_time = time.perf_counter()
-            response = await get_answer(message)
+            response, generation_time_ms = await get_answer(message)
+
             chunks = func.get_chunks_from_message(response)
 
             for i, chunk in enumerate(chunks):
@@ -97,25 +110,50 @@ async def group_message_handler(message: types.Message):
                     exec_time = time.perf_counter() - start_time
                     chunk += f"\n⏱️ ~{int(exec_time * 1000)} ms"
 
-                await message.reply(chunk, parse_mode=None)
+                sent_message = await message.reply(chunk, parse_mode=None)
 
-    crud.create_user_if_not_exists(message.from_user.id)
+            await crud.create_message(
+                schemas.Message(
+                    id=sent_message.message_id,
+                    chat_id=message.chat.id,
+                    user_id=message.from_user.id,
+                    content=response,
+                    generation_time_ms=generation_time_ms,
+                    history_part=True,
+                    from_bot=True
+                )
+            )
 
 
 @router.message(lambda message: message.chat.type == "private")
 async def private_message_handler(message: types.Message):
+
+    await crud.create_user_if_not_exists(schemas.User(id=message.from_user.id))
+
     if is_allowed_content(message):
         start_time = time.perf_counter()
-        response = await get_answer(message)
+        response, generation_time_ms = await get_answer(message)
+
         chunks = func.get_chunks_from_message(response)
 
         for i, chunk in enumerate(chunks):
             if i == len(chunks) - 1:
                 exec_time = time.perf_counter() - start_time
                 chunk += f"\n⏱️ ~{int(exec_time * 1000)} ms"
-            await message.reply(chunk, parse_mode=None)
+            sent_message = await message.reply(chunk, parse_mode=None)
 
-    crud.create_user_if_not_exists(message.from_user.id)
+    
+        await crud.create_message(
+            schemas.Message(
+                id=sent_message.message_id,
+                chat_id=message.chat.id,
+                user_id=message.from_user.id,
+                content=response,
+                generation_time_ms=generation_time_ms,
+                history_part=True,
+                from_bot=True
+            )
+        )
 
 
 def is_allowed_content(message: types.Message) -> bool:
@@ -129,14 +167,13 @@ def is_allowed_content(message: types.Message) -> bool:
 
 
 async def get_answer(message: types.Message):
-    crud.create_user_if_not_exists(message.from_user.id)
 
     chat_id = message.chat.id
-    chat = get_chat(chat_id=chat_id)
-    image = None
+    chat_session = await get_chat_session(chat_id=chat_id)
 
-    if not chat:
-        chat = create_new_chat(chat_id=chat_id)
+    await crud.add_user_to_chat(message.from_user.id, message.chat.id)
+
+    image = None
 
     final_message = [
         f"message by: {message.from_user.username} ({message.from_user.first_name} {message.from_user.last_name})\n\n"
@@ -156,9 +193,21 @@ async def get_answer(message: types.Message):
     if image:
         final_message.append(image)
 
-    response = await respond_on_message(message=final_message, chat_object=chat)
+    start_time = time.perf_counter()
+    response = await respond_on_message(message=final_message, chat_object=chat_session)
 
-    crud.create_message(chat_id, content=final_message[0], role="user")
-    crud.create_message(chat_id, content=response, role="model")
+    generation_time_ms = int((time.perf_counter() - start_time) * 1000)
+    
+    await crud.create_message(
+        schemas.Message(
+            id=message.message_id,
+            chat_id=message.chat.id,
+            user_id=message.from_user.id,
+            content=final_message[0],
+            generation_time_ms=0,
+            history_part=True,
+            from_bot=False
+        )
+    )
 
-    return response
+    return response, generation_time_ms
