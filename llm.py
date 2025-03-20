@@ -63,9 +63,7 @@ def create_new_chat(chat_id: str) -> ChatSession:
     return chat
 
 
-async def respond_on_message(
-    message: list,  chat_object: ChatSession
-) -> str:
+async def respond_on_message(message: list, chat_object: ChatSession) -> str:
     try:
         response = await chat_object.send_message_async(content=message)
 

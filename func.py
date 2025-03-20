@@ -1,14 +1,17 @@
 import aiohttp
 import io
 import os
+import uuid
 
 from PIL import Image
+from pydub import AudioSegment
 import speech_recognition as sr
 from pydub import AudioSegment
 from aiogram.types.photo_size import PhotoSize
 from aiogram.types.sticker import Sticker
 from google.generativeai.generative_models import ChatSession
 
+import tts
 import crud
 from settings import h4x0r_settings
 from bot import H4X0R_bot
@@ -25,8 +28,12 @@ async def voice_to_text(file_id: str, buffer: int = 20):
         return "Ошибка: не удалось получить путь к файлу"
 
     # Пути сохранения файлов
-    ogg_path = os.path.join(h4x0r_settings.VOICE_MESSAGES_FOLDER, f"{file_id}.ogg")
-    wav_path = os.path.join(h4x0r_settings.VOICE_MESSAGES_FOLDER, f"{file_id}.wav")
+    ogg_path = os.path.join(
+        h4x0r_settings.SECRET_VOICE_MESSAGES_FOLDER, f"{file_id}.ogg"
+    )
+    wav_path = os.path.join(
+        h4x0r_settings.SECRET_VOICE_MESSAGES_FOLDER, f"{file_id}.wav"
+    )
 
     # Загрузка и конвертация аудиофайла
     await H4X0R_bot.download_file(file_info.file_path, ogg_path)
@@ -55,7 +62,7 @@ async def voice_to_text(file_id: str, buffer: int = 20):
 async def photo_to_pil_object(photo: PhotoSize):
 
     file_info = await H4X0R_bot.get_file(photo.file_id)
-    file_url = f"https://api.telegram.org/file/bot{h4x0r_settings.TELEGRAM_BOT_TOKEN}/{file_info.file_path}"
+    file_url = f"https://api.telegram.org/file/bot{h4x0r_settings.SECRET_TELEGRAM_BOT_TOKEN}/{file_info.file_path}"
 
     async with aiohttp.ClientSession() as session:
         async with session.get(file_url) as response:
@@ -74,7 +81,7 @@ async def sticker_to_pil_object(sticker: Sticker):
         return photo
 
     file_info = await H4X0R_bot.get_file(sticker.file_id)
-    file_url = f"https://api.telegram.org/file/bot{h4x0r_settings.TELEGRAM_BOT_TOKEN}/{file_info.file_path}"
+    file_url = f"https://api.telegram.org/file/bot{h4x0r_settings.SECRET_TELEGRAM_BOT_TOKEN}/{file_info.file_path}"
 
     async with aiohttp.ClientSession() as session:
         async with session.get(file_url) as response:
@@ -93,46 +100,84 @@ def truncate_history(chat_object: ChatSession):
         ]
 
 
-def get_chunks_from_message(text: str):
+def get_chunks_from_message(text: str, chunk_size: int = 4096):
 
-    if len(text) <= 4096:
-        yield text
+    parts = []
 
-    else:
-        words = text.split()
-        part = ""
+    if len(text) <= chunk_size:
+        return [
+            text,
+        ]
 
-        for word in words:
-            if len(part + word) < 4096:
-                part += f"{word} "
-                
-            else:
-                yield part
-                part = ""
+    words = text.split()
+    part = ""
+
+    for word in words:
+        if len(part + word) < chunk_size:
+            part += f"{word} "
+
         else:
-            if part:
-                yield part
+            parts.append(part)
+            part = ""
+    else:
+        if part:
+            parts.append(part)
+
+    return parts
 
 
 def generate_report(chat_id: str):
 
     settings_dict = h4x0r_settings.model_dump()
-    
+
     filtered_settings_dict = {}
     for key, value in settings_dict.items():
         if not key.startswith("SECRET_"):
             filtered_settings_dict[key] = value
-
     current_messages_amount = crud.get_amount_messages_in_chat(chat_id)
-    messages_percent = current_messages_amount * 100 / h4x0r_settings.MAXIMUM_HISTORY_LENGTH 
-    progress_bar_history = f"[{"🟩" * (rounded_message_percent:=int(messages_percent // 20))}{"⬜️" * (5-rounded_message_percent)}]"
+    messages_percent = (
+        current_messages_amount * 100 / h4x0r_settings.MAXIMUM_HISTORY_LENGTH
+    )
+    progress_bar_history = f"{"■" * (rounded_message_percent:=int(messages_percent // 10))}{"□" * (10-rounded_message_percent)}"
 
     report = f"""
 <b>🎛 System Healthcheck</b>
 
 <b>🤖 Bot:</b> {h4x0r_settings.BOT_NAME} {h4x0r_settings.VERSION}
-<b>🔧 LLM Version:</b> {h4x0r_settings.LLM_NAME}
-<b>📏 History:</b> {messages_percent}% {progress_bar_history}
+<b>🧠 LLM:</b> {h4x0r_settings.LLM_NAME}
+<b>🎙 TTS Model:</b> {h4x0r_settings.TTS_MODEL}
+<b>📖 History:</b> {messages_percent}% {progress_bar_history}
 """
-    
+
     return report
+
+
+def text_to_speech(text: str):
+
+    processed_text = tts.accentizer.process_all(text)
+
+    voice_parts = []
+
+    for chunk in get_chunks_from_message(processed_text, chunk_size=1000):
+        filepath = os.path.join(
+            h4x0r_settings.SECRET_VOICE_MESSAGES_FOLDER, f"{uuid.uuid4()}.wav"
+        )
+        voice_parts.append(filepath)
+        audio = tts.tts_model(text=chunk, lenght_scale=1.2)
+        tts.tts_model.save_wav(audio, filepath)
+
+    if voice_parts:
+        audio = AudioSegment.from_wav(voice_parts[0])
+
+        try:
+            for voice_part in voice_parts[1:]:
+                audio += AudioSegment.from_wav(voice_part)
+                os.remove(voice_part)
+        finally:
+            filepath = os.path.join(
+                h4x0r_settings.SECRET_VOICE_MESSAGES_FOLDER, f"{uuid.uuid4()}.ogg"
+            )
+            voice_parts.append(filepath)
+            audio.export(voice_parts[0], format="ogg")
+
+    return voice_parts[0]

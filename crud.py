@@ -37,7 +37,9 @@ def get_messages(chat_id: str, db: Session = next(get_db())):
 
 
 def get_amount_messages_in_chat(chat_id: str, db: Session = next(get_db())):
-    return db.query(func.count(models.Message.id).filter(models.Message.chat_id == chat_id)).scalar()
+    return db.query(
+        func.count(models.Message.id).filter(models.Message.chat_id == chat_id)
+    ).scalar()
 
 
 def delete_chat(chat_id: str, db: Session = next(get_db())):
@@ -65,7 +67,9 @@ def get_chat_history(chat_id: str):
 
 
 def get_user(user_id: str, db: Session = next(get_db())):
-    return db.query(func.count(models.User.id).filter(models.User.id == user_id)).scalar()
+    return db.query(
+        func.count(models.User.id).filter(models.User.id == user_id)
+    ).scalar()
 
 
 def create_user_if_not_exists(user_id: str, db: Session = next(get_db())):
@@ -73,9 +77,9 @@ def create_user_if_not_exists(user_id: str, db: Session = next(get_db())):
     if not get_user(user_id):
 
         user = models.User(id=user_id)
-        
+
         db.add(user)
         db.commit()
         db.refresh(user)
-        
+
         return user

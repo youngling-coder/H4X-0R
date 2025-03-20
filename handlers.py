@@ -1,5 +1,6 @@
 import random
 import time
+import os
 
 from aiogram import Router
 from aiogram import types
@@ -8,7 +9,7 @@ from aiogram.enums.parse_mode import ParseMode
 
 import func, crud
 from settings import h4x0r_settings
-from llm import respond_on_message, create_new_chat, get_chat, model
+from llm import respond_on_message, create_new_chat, get_chat
 
 
 router = Router()
@@ -18,10 +19,30 @@ is_activated = lambda message: message and list(
 )
 
 
+@router.message(Command("voice"))
+async def send_voice_message(message: types.Message):
+
+    temp_message = await message.answer("🧠 Generating response...")
+    start_time = time.perf_counter()
+
+    response = await get_answer(message)
+
+    await message.edit_text("🎙️ Recording voice...")
+    audio_path = func.text_to_speech(response)
+    exec_time = time.perf_counter() - start_time
+
+    telegram_audio = types.FSInputFile(audio_path)
+    await message.answer_voice(telegram_audio, caption=f"⏱️ ~{int(exec_time * 1000)} ms")
+    await temp_message.delete()
+    os.remove(audio_path)
+
+
 @router.message(Command("syscheck"))
 async def system_check_handler(message: types.Message):
-    
-    await message.reply(func.generate_report(message.chat.id), parse_mode=ParseMode.HTML)
+
+    await message.reply(
+        func.generate_report(message.chat.id), parse_mode=ParseMode.HTML
+    )
 
 
 @router.message(CommandStart())
@@ -60,23 +81,41 @@ async def what_is_my_name(message: types.Message):
 
 
 @router.message(lambda message: message.chat.type in ("group", "supergroup"))
-async def group_message_handler(message: types.Message) -> None:
+async def group_message_handler(message: types.Message):
     if (
         (message.reply_to_message and message.reply_to_message.from_user.is_bot)
         or is_activated(message.caption)
         or is_activated(message.text)
     ):
         if is_allowed_content(message):
-            await get_answer(message=message)
+            start_time = time.perf_counter()
+            response = await get_answer(message)
+            chunks = func.get_chunks_from_message(response)
+
+            for i, chunk in enumerate(chunks):
+                if i == len(chunks) - 1:
+                    exec_time = time.perf_counter() - start_time
+                    chunk += f"\n⏱️ ~{int(exec_time * 1000)} ms"
+
+                await message.reply(chunk, parse_mode=None)
 
     crud.create_user_if_not_exists(message.from_user.id)
 
 
-
 @router.message(lambda message: message.chat.type == "private")
-async def private_message_handler(message: types.Message) -> None:
+async def private_message_handler(message: types.Message):
     if is_allowed_content(message):
-        await get_answer(message=message)
+        start_time = time.perf_counter()
+        response = await get_answer(message)
+        chunks = func.get_chunks_from_message(response)
+
+        for i, chunk in enumerate(chunks):
+            if i == len(chunks) - 1:
+                exec_time = time.perf_counter() - start_time
+                chunk += f"\n⏱️ ~{int(exec_time * 1000)} ms"
+            await message.reply(chunk, parse_mode=None)
+
+    crud.create_user_if_not_exists(message.from_user.id)
 
 
 def is_allowed_content(message: types.Message) -> bool:
@@ -107,31 +146,19 @@ async def get_answer(message: types.Message):
         if message.caption:
             final_message[0] += message.caption
         image = await func.photo_to_pil_object(message.photo[-1])
-
     elif message.voice:
         final_message[0] += await func.voice_to_text(message.voice.file_id)
-
     elif message.sticker:
         image = await func.sticker_to_pil_object(message.sticker)
-
     elif message.text:
         final_message[0] += message.text
 
     if image:
         final_message.append(image)
 
-    start_time = time.perf_counter()
-
-    response = await respond_on_message(
-        message=final_message, chat_object=chat
-    )
-
-    for chunk in func.get_chunks_from_message(response):
-    
-        exec_time = time.perf_counter() - start_time
-
-        to_send = f"{chunk}\n⏱️ ~{int(exec_time * 1000)} ms"
-        await message.reply(to_send, parse_mode=None)
+    response = await respond_on_message(message=final_message, chat_object=chat)
 
     crud.create_message(chat_id, content=final_message[0], role="user")
     crud.create_message(chat_id, content=response, role="model")
+
+    return response
