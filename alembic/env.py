@@ -1,7 +1,11 @@
+import asyncio
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
+from sqlalchemy.engine import Connection
+from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlalchemy import pool
+
 
 from alembic import context
 from models import Base
@@ -11,7 +15,7 @@ from settings import h4x0r_settings
 # access to the values within the .ini file in use.
 config = context.config
 config.set_main_option(
-    "sqlalchemy.url", f"sqlite:///{h4x0r_settings.SECRET_DATABASE_FILE}"
+    "sqlalchemy.url", f"postgresql+asyncpg://{h4x0r_settings.DB_USER}:{h4x0r_settings.DB_PASS}@{h4x0r_settings.DB_HOST}:{h4x0r_settings.DB_PORT}/{h4x0r_settings.DB_NAME}"
 )
 
 # Interpret the config file for Python logging.
@@ -55,6 +59,27 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
+def do_run_migrations(connection: Connection) -> None:
+    context.configure(connection=connection, target_metadata=target_metadata)
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+async def run_async_migrations() -> None:
+
+    connectable = async_engine_from_config(
+        config.get_section(config.config_ini_section, {}),
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+    )
+
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
+
+    await connectable.dispose()
+
+
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 
@@ -62,17 +87,22 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
 
-    with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+    asyncio.run(run_async_migrations())
 
-        with context.begin_transaction():
-            context.run_migrations()
+    # connectable = engine_from_config(
+    #     config.get_section(config.config_ini_section, {}),
+    #     prefix="sqlalchemy.",
+    #     poolclass=pool.NullPool,
+    # )
+
+    # with connectable.connect() as connection:
+    #     context.configure(
+    #         connection=connection, target_metadata=target_metadata
+    #     )
+
+    #     with context.begin_transaction():
+    #         context.run_migrations()
 
 
 if context.is_offline_mode():
