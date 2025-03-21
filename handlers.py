@@ -7,7 +7,7 @@ from aiogram import types
 from aiogram.filters import CommandStart, Command
 from aiogram.enums.parse_mode import ParseMode
 
-import func, crud, schemas
+import func, crud, schemas, models
 from settings import h4x0r_settings
 from llm import respond_on_message, get_chat_session
 
@@ -22,10 +22,12 @@ is_activated = lambda message: message and list(
 @router.message(Command("voice"))
 async def send_voice_message(message: types.Message):
 
+    user = await crud.create_user_if_not_exists(schemas.User(telegram_id=message.from_user.id))
+
     temp_message = await message.answer("🧠 Generating response...")
     start_time = time.perf_counter()
 
-    response, generation_time_ms = await get_answer(message)
+    chat, response, generation_time_ms = await get_answer(message, user)
 
     await temp_message.edit_text("🎙️ Recording voice...")
     audio_path = func.text_to_speech(response)
@@ -38,15 +40,16 @@ async def send_voice_message(message: types.Message):
 
     await crud.create_message(
         schemas.Message(
-            id=sent_message.message_id,
-            chat_id=message.chat.id,
-            user_id=message.from_user.id,
+            telegram_id=sent_message.message_id,
+            chat_id=chat.id,
+            user_id=user.id,
             content=response,
             generation_time_ms=generation_time_ms,
             history_part=True,
             from_bot=True,
         )
     )
+
     await temp_message.delete()
     os.remove(audio_path)
 
@@ -65,7 +68,7 @@ async def command_start_handler(message: types.Message) -> None:
     chat_id = str(message.chat.id)
 
     if chat_id == h4x0r_settings.SECRET_OWNER_CHAT_ID:
-        chat = get_chat_session(chat_id=chat_id)
+        chat = get_chat_session(message)
 
         response = await respond_on_message(
             message="Introduce yourself to your owner in a brief form and tell about yourself.",
@@ -94,7 +97,7 @@ async def what_is_my_name(message: types.Message):
 @router.message(lambda message: message.chat.type in ("group", "supergroup"))
 async def group_message_handler(message: types.Message):
 
-    await crud.create_user_if_not_exists(schemas.User(id=message.from_user.id))
+    user = await crud.create_user_if_not_exists(schemas.User(telegram_id=message.from_user.id))
 
     if (
         (message.reply_to_message and message.reply_to_message.from_user.is_bot)
@@ -103,7 +106,7 @@ async def group_message_handler(message: types.Message):
     ):
         if is_allowed_content(message):
             start_time = time.perf_counter()
-            response, generation_time_ms = await get_answer(message)
+            chat, response, generation_time_ms = await get_answer(message, user)
 
             chunks = func.get_chunks_from_message(response)
 
@@ -116,9 +119,9 @@ async def group_message_handler(message: types.Message):
 
             await crud.create_message(
                 schemas.Message(
-                    id=sent_message.message_id,
-                    chat_id=message.chat.id,
-                    user_id=message.from_user.id,
+                    telegram_id=sent_message.message_id,
+                    chat_id=chat.id,
+                    user_id=user.id,
                     content=response,
                     generation_time_ms=generation_time_ms,
                     history_part=True,
@@ -130,11 +133,11 @@ async def group_message_handler(message: types.Message):
 @router.message(lambda message: message.chat.type == "private")
 async def private_message_handler(message: types.Message):
 
-    await crud.create_user_if_not_exists(schemas.User(id=message.from_user.id))
+    user = await crud.create_user_if_not_exists(schemas.User(telegram_id=message.from_user.id))
 
     if is_allowed_content(message):
         start_time = time.perf_counter()
-        response, generation_time_ms = await get_answer(message)
+        chat, response, generation_time_ms = await get_answer(message, user)
 
         chunks = func.get_chunks_from_message(response)
 
@@ -146,9 +149,9 @@ async def private_message_handler(message: types.Message):
 
         await crud.create_message(
             schemas.Message(
-                id=sent_message.message_id,
-                chat_id=message.chat.id,
-                user_id=message.from_user.id,
+                telegram_id=sent_message.message_id,
+                chat_id=chat.id,
+                user_id=user.id,
                 content=response,
                 generation_time_ms=generation_time_ms,
                 history_part=True,
@@ -166,13 +169,12 @@ def is_allowed_content(message: types.Message) -> bool:
         or message.voice
     )
 
+async def get_answer(message: types.Message, user: models.User):
 
-async def get_answer(message: types.Message):
+    chat_session = await get_chat_session(message)
+    chat: models.Chat = await crud.get_chat(message.chat.id)
 
-    chat_id = message.chat.id
-    chat_session = await get_chat_session(chat_id=chat_id)
-
-    await crud.add_user_to_chat(message.from_user.id, message.chat.id)
+    await crud.add_user_to_chat_if_not_added(user.id, chat.id)
 
     image = None
 
@@ -201,14 +203,13 @@ async def get_answer(message: types.Message):
 
     await crud.create_message(
         schemas.Message(
-            id=message.message_id,
-            chat_id=message.chat.id,
-            user_id=message.from_user.id,
+            telegram_id=message.message_id,
+            chat_id=chat.id,
+            user_id=user.id,
             content=final_message[0],
-            generation_time_ms=0,
             history_part=True,
             from_bot=False,
         )
     )
 
-    return response, generation_time_ms
+    return chat, response, generation_time_ms
