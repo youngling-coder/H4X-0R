@@ -1,6 +1,6 @@
 from .base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Float, BigInteger
+from sqlalchemy import String, Float, BigInteger, Integer
 from typing import List, TYPE_CHECKING
 
 from .user_chat import user_chat_association
@@ -11,6 +11,8 @@ if TYPE_CHECKING:
 
 
 class Chat(Base):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False)
     api_key: Mapped[str] = mapped_column(String, nullable=True)
     tts_model: Mapped[str] = mapped_column(
         String, nullable=False, server_default="TeraTTS/glados2-g2p-vits"
