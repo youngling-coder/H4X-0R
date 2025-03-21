@@ -47,18 +47,26 @@ async def get_messages(
     return messages
 
 
-async def get_chat_history(chat_id: str) -> list[dict]:
+async def get_chat_history(chat_id: int) -> Optional[list[dict]]:
+
+    from crud import chat
+
     history = []
 
+    chat_obj = await chat.get_chat(telegram_id=chat_id)
+
+    if not chat_obj:
+        return
+
     messages: list[models.Message] = await get_messages(
-        chat_id=chat_id, history_part=True
+        chat_id=chat_obj.id, history_part=True
     )
 
     for message in messages:
 
         history.append(
             {
-                "role": "model" if not message.from_bot else "user",
+                "role": "model" if message.from_bot else "user",
                 "parts": [message.content],
             }
         )

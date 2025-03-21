@@ -6,9 +6,9 @@ import models, schemas
 
 
 @db_session_required
-async def get_user(user_id: int, db: AsyncSession):
+async def get_user(telegram_id: int, db: AsyncSession):
 
-    stmt = select(models.User).filter(models.User.id == user_id)
+    stmt = select(models.User).filter(models.User.telegram_id == telegram_id)
     result = await db.execute(stmt)
     user = result.scalars().first()
 
@@ -18,17 +18,17 @@ async def get_user(user_id: int, db: AsyncSession):
 
 
 @db_session_required
-async def create_user_if_not_exists(user: schemas.User, db: AsyncSession):
+async def create_user_if_not_exists(user_schema: schemas.User, db: AsyncSession):
 
-    user_exists = await get_user(user.id)
+    user = await get_user(user_schema.telegram_id)
 
-    if not user_exists:
+    if not user:
 
-        user = models.User(id=user.id)
+        user = models.User(**user_schema.model_dump())
 
         db.add(user)
         await db.commit()
         await db.refresh(user)
         await db.close()
 
-        return user
+    return user

@@ -7,7 +7,7 @@ from typing import Optional
 
 
 @db_session_required
-async def add_user_to_chat(user_id: int, chat_id: int, db: AsyncSession):
+async def add_user_to_chat_if_not_added(user_id: int, chat_id: int, db: AsyncSession):
 
     stmt = select(models.user_chat_association).where(
         models.user_chat_association.c.user_id == user_id,
@@ -22,11 +22,13 @@ async def add_user_to_chat(user_id: int, chat_id: int, db: AsyncSession):
         await db.execute(stmt)
         await db.commit()
 
+    await db.close()
+
 
 @db_session_required
-async def get_chat(chat_id: int, db: AsyncSession) -> Optional[models.Chat]:
+async def get_chat(telegram_id: int, db: AsyncSession) -> Optional[models.Chat]:
 
-    stmt = select(models.Chat).filter(models.Chat.id == chat_id)
+    stmt = select(models.Chat).filter(models.Chat.telegram_id == telegram_id)
     result = await db.execute(stmt)
     chat = result.scalars().first()
 
@@ -38,7 +40,7 @@ async def get_chat(chat_id: int, db: AsyncSession) -> Optional[models.Chat]:
 @db_session_required
 async def create_chat(chat: schemas.Chat, db: AsyncSession):
 
-    chat_exists = await get_chat(chat.id)
+    chat_exists = await get_chat(chat.telegram_id)
 
     if not chat_exists:
         chat = models.Chat(**chat.model_dump())
