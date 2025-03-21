@@ -88,13 +88,6 @@ def upgrade() -> None:
             "timestamp", sa.DateTime(), server_default=sa.text("now()"), nullable=False
         ),
     )
-    op.alter_column(
-        "messages",
-        "content",
-        existing_type=sa.BIGINT(),
-        type_=sa.String(),
-        existing_nullable=False,
-    )
     op.create_foreign_key(
         "fk_message_user_id",
         "messages",
@@ -103,7 +96,6 @@ def upgrade() -> None:
         ["id"],
         ondelete="NO ACTION",
     )
-    op.drop_column("messages", "role")
     op.add_column(
         "users",
         sa.Column(
@@ -133,23 +125,8 @@ def downgrade() -> None:
         existing_server_default=sa.text("'0'::bigint"),
     )
     op.drop_column("users", "timestamp")
-    op.add_column(
-        "messages",
-        sa.Column(
-            "role",
-            postgresql.ENUM("user", "model", name="userrole"),
-            autoincrement=False,
-            nullable=False,
-        ),
-    )
+
     op.drop_constraint("fk_message_user_id", "messages", type_="foreignkey")
-    op.alter_column(
-        "messages",
-        "content",
-        existing_type=sa.String(),
-        type_=sa.BIGINT(),
-        existing_nullable=False,
-    )
     op.drop_column("messages", "timestamp")
     op.drop_column("messages", "from_bot")
     op.drop_column("messages", "history_part")
