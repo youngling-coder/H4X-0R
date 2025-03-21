@@ -22,7 +22,9 @@ is_activated = lambda message: message and list(
 @router.message(Command("voice"))
 async def send_voice_message(message: types.Message):
 
-    user = await crud.create_user_if_not_exists(schemas.User(telegram_id=message.from_user.id))
+    user = await crud.create_user_if_not_exists(
+        schemas.User(telegram_id=message.from_user.id)
+    )
 
     temp_message = await message.answer("🧠 Generating response...")
     start_time = time.perf_counter()
@@ -97,7 +99,9 @@ async def what_is_my_name(message: types.Message):
 @router.message(lambda message: message.chat.type in ("group", "supergroup"))
 async def group_message_handler(message: types.Message):
 
-    user = await crud.create_user_if_not_exists(schemas.User(telegram_id=message.from_user.id))
+    user = await crud.create_user_if_not_exists(
+        schemas.User(telegram_id=message.from_user.id)
+    )
 
     if (
         (message.reply_to_message and message.reply_to_message.from_user.is_bot)
@@ -133,7 +137,9 @@ async def group_message_handler(message: types.Message):
 @router.message(lambda message: message.chat.type == "private")
 async def private_message_handler(message: types.Message):
 
-    user = await crud.create_user_if_not_exists(schemas.User(telegram_id=message.from_user.id))
+    user = await crud.create_user_if_not_exists(
+        schemas.User(telegram_id=message.from_user.id)
+    )
 
     if is_allowed_content(message):
         start_time = time.perf_counter()
@@ -168,6 +174,7 @@ def is_allowed_content(message: types.Message) -> bool:
         or message.sticker
         or message.voice
     )
+
 
 async def get_answer(message: types.Message, user: models.User):
 

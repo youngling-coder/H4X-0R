@@ -10,7 +10,6 @@ if TYPE_CHECKING:
     from .message import Message
 
 
-
 class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False)

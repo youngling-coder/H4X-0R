@@ -28,4 +28,3 @@ class Message(Base):
 
     chat: Mapped["Chat"] = relationship(back_populates="messages")
     user: Mapped["User"] = relationship(back_populates="messages")
-

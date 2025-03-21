@@ -1,11 +1,13 @@
 import logging
+import uuid
 from typing import Optional
 
 from func import truncate_history
+from aiogram import types
 from settings import h4x0r_settings
 import google.generativeai as genai
 from google.generativeai.generative_models import ChatSession
-import crud, schemas
+import crud, schemas, models
 
 
 def get_instructions() -> str | None:
@@ -28,23 +30,23 @@ genai.configure(api_key=h4x0r_settings.SECRET_GOOGLE_API)
 model = genai.GenerativeModel(model_name=h4x0r_settings.LLM_NAME)
 
 
-async def get_chat_session(chat_id: int) -> ChatSession:
+async def get_chat_session(message: types.Message) -> ChatSession:
 
-    history = await crud.get_chat_history(chat_id)
+    history = await crud.get_chat_history(message.chat.id)
 
     if history:
         chat = model.start_chat(history=history)
     else:
-        chat = await create_new_chat(chat_id=chat_id)
+        chat = await create_new_chat(message)
 
     return chat
 
 
-async def create_new_chat(chat_id: int) -> ChatSession:
+async def create_new_chat(message: types.Message) -> ChatSession:
 
     instructions = get_instructions()
 
-    chat = model.start_chat(
+    chat_session = model.start_chat(
         history=[
             {
                 "role": "user",
@@ -55,13 +57,25 @@ async def create_new_chat(chat_id: int) -> ChatSession:
         ]
     )
 
-    await crud.create_chat(
+    chat: models.Chat = await crud.create_chat(
         schemas.Chat(
-            id=chat_id,
+            telegram_id=message.chat.id,
         )
     )
 
-    return chat
+    user: models.User = await crud.get_user(message.from_user.id)
+
+    await crud.create_message(
+        schemas.Message(
+            chat_id=chat.id,
+            user_id=user.id,
+            content=instructions,
+            from_bot=False,
+            history_part=True,
+        )
+    )
+
+    return chat_session
 
 
 async def respond_on_message(message: list, chat_object: ChatSession) -> str:
