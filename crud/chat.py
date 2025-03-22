@@ -26,6 +26,18 @@ async def add_user_to_chat_if_not_added(user_id: int, chat_id: int, db: AsyncSes
 
 
 @db_session_required
+async def get_chat_user_ids(telegram_id: int, db: AsyncSession):
+
+    chat: models.Chat = await get_chat(telegram_id)
+    
+    stmt = select(models.user_chat_association.c.user_id).filter(models.user_chat_association.c.chat_id == chat.id)
+    result = await db.execute(stmt)
+    users = result.scalars().all()
+
+    return users
+
+
+@db_session_required
 async def get_chat(telegram_id: int, db: AsyncSession) -> Optional[models.Chat]:
 
     stmt = select(models.Chat).filter(models.Chat.telegram_id == telegram_id)
