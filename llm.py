@@ -63,7 +63,7 @@ async def create_new_chat(message: types.Message) -> ChatSession:
         )
     )
 
-    user: models.User = await crud.get_user(message.from_user.id)
+    user: models.User = await crud.get_user_by_telegram_id(message.from_user.id)
 
     await crud.create_message(
         schemas.Message(
