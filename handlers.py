@@ -19,6 +19,39 @@ is_activated = lambda message: message and list(
 )
 
 
+@router.message(Command("stats"))
+async def handle_chat_statistics(message: types.Message):
+    stats = {}
+
+    chat = await crud.get_chat(message.chat.id)
+    if chat:
+        chat_user_ids = await crud.get_chat_user_ids(message.chat.id)
+
+        for user_id in chat_user_ids[:]:
+            user: models.User = await crud.get_user_by_id(user_id)
+            
+            stats[str(user.telegram_id)] = len(await crud.get_messages(chat_id=chat.id, user_id=user.id, history_part=True, from_bot=False))
+
+    response = "**🏆 Message Statistics\n\n**"
+    sorted_stats = dict(sorted(stats.items(), key=lambda item: item[1], reverse=True))
+    
+    medals = ("🥇","🥈","🥉")
+
+    for index, item  in enumerate(sorted_stats.items()):
+        
+        key, value = item
+
+        entry = ""
+
+        if index < 3:
+            entry += medals[index]
+
+        entry += f"{key} — {value}\n"
+
+        response += entry
+
+    await message.answer(response, parse_mode=ParseMode.MARKDOWN_V2)
+
 @router.message(Command("voice"))
 async def send_voice_message(message: types.Message):
 
@@ -186,7 +219,7 @@ async def get_answer(message: types.Message, user: models.User):
     image = None
 
     final_message = [
-        f"message by: {message.from_user.username} ({message.from_user.first_name} {message.from_user.last_name})\n\n"
+        f"[bot is not authorized to write this line] message by: {message.from_user.username} ({message.from_user.first_name} {message.from_user.last_name})\n\n"
     ]
 
     if message.photo:
