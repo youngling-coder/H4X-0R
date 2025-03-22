@@ -25,7 +25,8 @@ async def get_messages(
     db: AsyncSession,
     chat_id: Optional[int] = None,
     user_id: Optional[int] = None,
-    history_part: bool = False,
+    history_part: Optional[bool] = None,
+    from_bot: Optional[bool] = None
 ) -> list[models.Message]:
 
     stmt = select(models.Message)
@@ -36,8 +37,11 @@ async def get_messages(
     if isinstance(user_id, int):
         stmt = stmt.filter(models.Message.user_id == user_id)
 
-    if history_part:
+    if isinstance(history_part, bool):
         stmt = stmt.filter(models.Message.history_part == history_part)
+    
+    if isinstance(from_bot, bool):
+        stmt = stmt.filter(models.Message.from_bot == from_bot)
 
     result = await db.execute(stmt)
     messages = result.scalars().all()
@@ -47,13 +51,13 @@ async def get_messages(
     return messages
 
 
-async def get_chat_history(chat_id: int) -> Optional[list[dict]]:
+async def get_chat_history(telegram_id: int) -> Optional[list[dict]]:
 
     from crud import chat
 
     history = []
 
-    chat_obj = await chat.get_chat(telegram_id=chat_id)
+    chat_obj = await chat.get_chat(telegram_id=telegram_id)
 
     if not chat_obj:
         return
