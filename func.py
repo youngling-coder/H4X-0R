@@ -163,7 +163,7 @@ def text_to_speech(text: str):
             h4x0r_settings.SECRET_VOICE_MESSAGES_FOLDER, f"{uuid.uuid4()}.wav"
         )
         voice_parts.append(filepath)
-        audio = tts.tts_model(text=chunk, lenght_scale=1.2)
+        audio = tts.tts_model(text=chunk, lenght_scale=.8)
         tts.tts_model.save_wav(audio, filepath)
 
     if voice_parts:
