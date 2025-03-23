@@ -181,3 +181,16 @@ def text_to_speech(text: str):
             audio.export(voice_parts[0], format="ogg")
 
     return voice_parts[0]
+
+
+def get_user_name(user: types.User) -> str:
+
+    name = user.id
+
+    if user.username:
+        name = user.username
+
+    if user.full_name:
+        name = user.full_name
+
+    return str(name)
