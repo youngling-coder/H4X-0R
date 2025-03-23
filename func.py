@@ -3,6 +3,7 @@ import io
 import os
 import uuid
 from aiogram import types
+from typing import Optional
 
 from PIL import Image
 from pydub import AudioSegment
@@ -185,7 +186,7 @@ def text_to_speech(text: str):
     return voice_parts[0]
 
 
-def get_user_name(user: types.User) -> str:
+def get_full_name(user: types.User) -> str:
 
     name = user.id
 
@@ -196,3 +197,11 @@ def get_user_name(user: types.User) -> str:
         name = user.full_name
 
     return str(name)
+
+
+def get_username(user: types.User) -> Optional[str]:
+
+    if user.username:
+        return f"{user.username}"
+    
+    return None
