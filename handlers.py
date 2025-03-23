@@ -95,8 +95,14 @@ In future this command will be extended to <code>'/stats offset username'</code>
 @router.message(Command("voice"))
 async def send_voice_message(message: types.Message):
 
-    user = await crud.create_user_if_not_exists(
-        schemas.User(telegram_id=message.from_user.id)
+    name = func.get_full_name(message.from_user)
+
+    user = await crud.create_user_if_not_exists_update_otherwise(
+        schemas.User(
+            telegram_id=message.from_user.id,
+            username=func.get_username(message.from_user),
+            name=name
+        )
     )
 
     temp_message = await message.answer("🧠 Generating response...")
@@ -172,8 +178,14 @@ async def what_is_my_name(message: types.Message):
 @router.message(lambda message: message.chat.type in ("group", "supergroup"))
 async def group_message_handler(message: types.Message):
 
-    user = await crud.create_user_if_not_exists(
-        schemas.User(telegram_id=message.from_user.id)
+    name = func.get_full_name(message.from_user)
+
+    user = await crud.create_user_if_not_exists_update_otherwise(
+        schemas.User(
+            telegram_id=message.from_user.id,
+            username=func.get_username(message.from_user),
+            name=name
+        )
     )
 
     if (
@@ -227,8 +239,14 @@ async def group_message_handler(message: types.Message):
 @router.message(lambda message: message.chat.type == "private")
 async def private_message_handler(message: types.Message):
 
-    user = await crud.create_user_if_not_exists(
-        schemas.User(telegram_id=message.from_user.id)
+    name = func.get_full_name(message.from_user)
+
+    user = await crud.create_user_if_not_exists_update_otherwise(
+        schemas.User(
+            telegram_id=message.from_user.id,
+            username=func.get_username(message.from_user),
+            name=name
+        )
     )
 
     if is_allowed_content(message):
