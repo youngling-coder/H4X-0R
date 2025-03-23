@@ -1,6 +1,5 @@
 import logging
-import uuid
-from typing import Optional
+import time
 
 from func import truncate_history
 from aiogram import types
@@ -69,6 +68,7 @@ async def create_new_chat(message: types.Message) -> ChatSession:
         schemas.Message(
             chat_id=chat.id,
             user_id=user.id,
+            telegram_id=-int(time.time()),
             content=instructions,
             from_bot=False,
             history_part=True,
