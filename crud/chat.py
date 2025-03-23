@@ -34,6 +34,8 @@ async def get_chat_user_ids(telegram_id: int, db: AsyncSession):
     result = await db.execute(stmt)
     users = result.scalars().all()
 
+    await db.close()
+
     return users
 
 
