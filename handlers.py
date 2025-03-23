@@ -205,6 +205,23 @@ async def group_message_handler(message: types.Message):
                     from_bot=True,
                 )
             )
+            return
+    
+    chat: models.Chat = await crud.get_chat(message.chat.id)
+    await crud.add_user_to_chat_if_not_added(user.id, chat.id)
+
+    await crud.create_message(
+        schemas.Message(
+            telegram_id=message.message_id,
+            chat_id=chat.id,
+            user_id=user.id,
+            content=message.text or message.caption or "",
+            generation_time_ms=0,
+            history_part=False,
+            from_bot=False,
+        )
+    )
+
 
 
 @router.message(lambda message: message.chat.type == "private")
@@ -237,6 +254,25 @@ async def private_message_handler(message: types.Message):
                 from_bot=True,
             )
         )
+
+        return
+    
+
+    chat: models.Chat = await crud.get_chat(message.chat.id)
+    await crud.add_user_to_chat_if_not_added(user.id, chat.id)
+    
+    await crud.create_message(
+        schemas.Message(
+            telegram_id=message.message_id,
+            chat_id=chat.id,
+            user_id=user.id,
+            content=message.text or message.caption or "",
+            generation_time_ms=0,
+            history_part=False,
+            from_bot=False,
+        )
+    )
+
 
 
 def is_allowed_content(message: types.Message) -> bool:
