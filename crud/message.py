@@ -1,6 +1,6 @@
-from typing import Optional
+from typing import Optional, Union
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import db_session_required
@@ -26,8 +26,9 @@ async def get_messages(
     chat_id: Optional[int] = None,
     user_id: Optional[int] = None,
     history_part: Optional[bool] = None,
-    from_bot: Optional[bool] = None
-) -> list[models.Message]:
+    from_bot: Optional[bool] = None,
+    count: bool = False
+) -> Union[list[models.Message], int]:
 
     stmt = select(models.Message)
 
@@ -43,12 +44,18 @@ async def get_messages(
     if isinstance(from_bot, bool):
         stmt = stmt.filter(models.Message.from_bot == from_bot)
 
-    result = await db.execute(stmt)
-    messages = result.scalars().all()
+    if count:
+        stmt = select(func.count()).select_from(models.Message).where(stmt._whereclause)
+        result = await db.scalar(stmt)
+        return result
+    
+    else:
+        result = await db.execute(stmt)
+        result = result.scalars().all()
 
     await db.close()
 
-    return messages
+    return result
 
 
 async def get_chat_history(telegram_id: int) -> Optional[list[dict]]:
