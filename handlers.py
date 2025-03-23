@@ -28,26 +28,22 @@ class WhoIs(Filter):
         return message.text and message.text.lower().startswith(self.my_text)
 
 
-
 @router.message(WhoIs("гектор кто"))
 async def who_is_handler(message: types.Message):
-    
-    chat_user_ids = await crud.get_chat_user_ids(message.chat.id)
-    
-    user = await crud.get_user_by_id(random.choice(chat_user_ids))
 
+    chat_user_ids = await crud.get_chat_user_ids(message.chat.id)
+
+    user = await crud.get_user_by_id(random.choice(chat_user_ids))
 
     question = message.text
     question = question.replace("гектор кто", "")
     question = question.replace("?", "")
 
-    who_said = [
-        "🖥 Квантовый компьютер вычислил, что ", "✨ Звезды мне сказали, что "
-    ]
+    who_said = ["🖥 Квантовый компьютер вычислил, что ", "✨ Звезды мне сказали, что "]
     text = random.choice(who_said) + f"{user.name} " + question
 
     await message.reply(text, parse_mode=None)
-    
+
 
 @router.message(Command("stats"))
 async def handle_chat_statistics(message: types.Message):
@@ -61,18 +57,22 @@ async def handle_chat_statistics(message: types.Message):
             chat_user_ids = chat_user_ids[:30]
 
         for user_id in chat_user_ids:
-            
+
             user: models.User = await crud.get_user_by_id(user_id)
-            
-            stats[str(user.name)] = len(await crud.get_messages(chat_id=chat.id, user_id=user.id, from_bot=False))
+
+            stats[(user.name, user.username)] = len(
+                await crud.get_messages(
+                    chat_id=chat.id, user_id=user.id, from_bot=False
+                )
+            )
 
     response = "<b>🏆 Message Statistics</b>\n\n"
     sorted_stats = dict(sorted(stats.items(), key=lambda item: item[1], reverse=True))
-    
-    medals = ("🥇","🥈","🥉")
 
-    for index, item  in enumerate(sorted_stats.items()):
-        
+    medals = ("🥇", "🥈", "🥉")
+
+    for index, item in enumerate(sorted_stats.items()):
+
         key, value = item
 
         entry = ""
@@ -80,7 +80,7 @@ async def handle_chat_statistics(message: types.Message):
         if index < 3:
             entry += medals[index]
 
-        entry += f"{html.escape(key)} — {value}\n"
+        entry += f"<a href='https://t.me/{key[1] or "#"}'>{html.escape(key[0])}</a> — {value}\n"
 
         response += entry
 
@@ -90,7 +90,12 @@ async def handle_chat_statistics(message: types.Message):
 In future this command will be extended to <code>'/stats offset username'</code>
 """
 
-    await message.answer(response, parse_mode=ParseMode.HTML)
+    await message.answer(
+        response,
+        link_preview_options=types.LinkPreviewOptions(is_disabled=True),
+        parse_mode=ParseMode.HTML,
+    )
+
 
 @router.message(Command("voice"))
 async def send_voice_message(message: types.Message):
@@ -101,7 +106,7 @@ async def send_voice_message(message: types.Message):
         schemas.User(
             telegram_id=message.from_user.id,
             username=func.get_username(message.from_user),
-            name=name
+            name=name,
         )
     )
 
@@ -138,9 +143,11 @@ async def send_voice_message(message: types.Message):
 @router.message(Command("syscheck"))
 async def system_check_handler(message: types.Message):
 
-    await message.reply(
-        func.generate_report(message.chat.id), parse_mode=ParseMode.HTML
-    )
+    chat: models.Chat = await crud.get_chat(message.chat.id)
+
+    report = await func.generate_report(chat)
+
+    await message.reply(report, parse_mode=ParseMode.HTML)
 
 
 @router.message(CommandStart())
@@ -184,7 +191,7 @@ async def group_message_handler(message: types.Message):
         schemas.User(
             telegram_id=message.from_user.id,
             username=func.get_username(message.from_user),
-            name=name
+            name=name,
         )
     )
 
@@ -218,7 +225,7 @@ async def group_message_handler(message: types.Message):
                 )
             )
             return
-    
+
     chat: models.Chat = await crud.get_chat(message.chat.id)
     await crud.add_user_to_chat_if_not_added(user.id, chat.id)
 
@@ -235,7 +242,6 @@ async def group_message_handler(message: types.Message):
     )
 
 
-
 @router.message(lambda message: message.chat.type == "private")
 async def private_message_handler(message: types.Message):
 
@@ -245,7 +251,7 @@ async def private_message_handler(message: types.Message):
         schemas.User(
             telegram_id=message.from_user.id,
             username=func.get_username(message.from_user),
-            name=name
+            name=name,
         )
     )
 
@@ -274,11 +280,10 @@ async def private_message_handler(message: types.Message):
         )
 
         return
-    
 
     chat: models.Chat = await crud.get_chat(message.chat.id)
     await crud.add_user_to_chat_if_not_added(user.id, chat.id)
-    
+
     await crud.create_message(
         schemas.Message(
             telegram_id=message.message_id,
@@ -290,7 +295,6 @@ async def private_message_handler(message: types.Message):
             from_bot=False,
         )
     )
-
 
 
 def is_allowed_content(message: types.Message) -> bool:

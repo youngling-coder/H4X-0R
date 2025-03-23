@@ -136,11 +136,11 @@ async def generate_report(chat: models.Chat):
     for key, value in settings_dict.items():
         if not key.startswith("SECRET_"):
             filtered_settings_dict[key] = value
-    current_messages_count = await crud.get_messages(chat_id=chat.id, history_part=True, count=True)
-
-    messages_percent = (
-        current_messages_count * 100 / chat.history_depth
+    current_messages_count = await crud.get_messages(
+        chat_id=chat.id, history_part=True, count=True
     )
+
+    messages_percent = current_messages_count * 100 / chat.history_depth
     progress_bar_history = f"{"■" * (rounded_message_percent:=int(messages_percent // 10))}{"□" * (10-rounded_message_percent)}"
 
     report = f"""
@@ -166,7 +166,7 @@ def text_to_speech(text: str):
             h4x0r_settings.SECRET_VOICE_MESSAGES_FOLDER, f"{uuid.uuid4()}.wav"
         )
         voice_parts.append(filepath)
-        audio = tts.tts_model(text=chunk, lenght_scale=.8)
+        audio = tts.tts_model(text=chunk, lenght_scale=0.8)
         tts.tts_model.save_wav(audio, filepath)
 
     if voice_parts:
@@ -203,5 +203,5 @@ def get_username(user: types.User) -> Optional[str]:
 
     if user.username:
         return f"{user.username}"
-    
+
     return None

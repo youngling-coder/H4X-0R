@@ -27,7 +27,7 @@ async def get_messages(
     user_id: Optional[int] = None,
     history_part: Optional[bool] = None,
     from_bot: Optional[bool] = None,
-    count: bool = False
+    count: bool = False,
 ) -> Union[list[models.Message], int]:
 
     stmt = select(models.Message)
@@ -40,7 +40,7 @@ async def get_messages(
 
     if isinstance(history_part, bool):
         stmt = stmt.filter(models.Message.history_part == history_part)
-    
+
     if isinstance(from_bot, bool):
         stmt = stmt.filter(models.Message.from_bot == from_bot)
 
@@ -48,7 +48,7 @@ async def get_messages(
         stmt = select(func.count()).select_from(models.Message).where(stmt._whereclause)
         result = await db.scalar(stmt)
         return result
-    
+
     else:
         result = await db.execute(stmt)
         result = result.scalars().all()
