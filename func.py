@@ -2,6 +2,7 @@ import aiohttp
 import io
 import os
 import uuid
+from aiogram import types
 
 from PIL import Image
 from pydub import AudioSegment
@@ -12,7 +13,7 @@ from aiogram.types.sticker import Sticker
 from google.generativeai.generative_models import ChatSession
 
 import tts
-import crud
+import crud, models
 from settings import h4x0r_settings
 from bot import H4X0R_bot
 
@@ -126,7 +127,7 @@ def get_chunks_from_message(text: str, chunk_size: int = 4096):
     return parts
 
 
-def generate_report(chat_id: str):
+async def generate_report(chat: models.Chat):
 
     settings_dict = h4x0r_settings.model_dump()
 
@@ -134,9 +135,10 @@ def generate_report(chat_id: str):
     for key, value in settings_dict.items():
         if not key.startswith("SECRET_"):
             filtered_settings_dict[key] = value
-    current_messages_amount = crud.get_amount_messages_in_chat(chat_id)
+    current_messages_count = await crud.get_messages(chat_id=chat.id, history_part=True, count=True)
+
     messages_percent = (
-        current_messages_amount * 100 / h4x0r_settings.MAXIMUM_HISTORY_LENGTH
+        current_messages_count * 100 / chat.history_depth
     )
     progress_bar_history = f"{"■" * (rounded_message_percent:=int(messages_percent // 10))}{"□" * (10-rounded_message_percent)}"
 
@@ -145,7 +147,7 @@ def generate_report(chat_id: str):
 
 <b>🤖 Bot:</b> {h4x0r_settings.BOT_NAME} {h4x0r_settings.VERSION}
 <b>🧠 LLM:</b> {h4x0r_settings.LLM_NAME}
-<b>🎙 TTS Model:</b> {h4x0r_settings.TTS_MODEL}
+<b>🎙 TTS Model:</b> {chat.tts_model}
 <b>📖 History:</b> {messages_percent}% {progress_bar_history}
 """
 
