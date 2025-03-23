@@ -1,4 +1,5 @@
 import random
+import html
 import time
 import os
 
@@ -56,12 +57,16 @@ async def handle_chat_statistics(message: types.Message):
     if chat:
         chat_user_ids = await crud.get_chat_user_ids(message.chat.id)
 
-        for user_id in chat_user_ids[:]:
+        if len(chat_user_ids) > 30:
+            chat_user_ids = chat_user_ids[:30]
+
+        for user_id in chat_user_ids:
+            
             user: models.User = await crud.get_user_by_id(user_id)
             
-            stats[str(user.telegram_id)] = len(await crud.get_messages(chat_id=chat.id, user_id=user.id, history_part=True, from_bot=False))
+            stats[str(user.name)] = len(await crud.get_messages(chat_id=chat.id, user_id=user.id, from_bot=False))
 
-    response = "**🏆 Message Statistics\n\n**"
+    response = "<b>🏆 Message Statistics</b>\n\n"
     sorted_stats = dict(sorted(stats.items(), key=lambda item: item[1], reverse=True))
     
     medals = ("🥇","🥈","🥉")
@@ -75,11 +80,17 @@ async def handle_chat_statistics(message: types.Message):
         if index < 3:
             entry += medals[index]
 
-        entry += f"{key} — {value}\n"
+        entry += f"{html.escape(key)} — {value}\n"
 
         response += entry
 
-    await message.answer(response, parse_mode=ParseMode.MARKDOWN_V2)
+    response += """
+<i>Only TOP-30 users are shown here</i>
+
+In future this command will be extended to <code>'/stats offset username'</code>
+"""
+
+    await message.answer(response, parse_mode=ParseMode.HTML)
 
 @router.message(Command("voice"))
 async def send_voice_message(message: types.Message):
