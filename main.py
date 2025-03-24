@@ -5,12 +5,14 @@ import logging
 from aiogram import Dispatcher
 
 from handlers import router
+from filters import BlackListFilter
 from bot import H4X0R_bot
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
 
 dp = Dispatcher()
+dp.message.filter(BlackListFilter())
 dp.include_router(router)
 
 
