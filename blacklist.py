@@ -1,0 +1,3 @@
+BLACKLIST_TELEGRAM_IDS = [
+    777000,
+]
