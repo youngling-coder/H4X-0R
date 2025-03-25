@@ -5,13 +5,13 @@ import os
 
 from aiogram import Router
 from aiogram import types
-from aiogram.filters import CommandStart, Command, Filter
+from aiogram.filters import CommandStart, Command
 from aiogram.enums.parse_mode import ParseMode
 
 import func, crud, schemas, models
 from settings import h4x0r_settings
 from llm import respond_on_message, get_chat_session
-
+from filters import WhoIsFilter
 
 router = Router()
 
@@ -20,15 +20,7 @@ is_activated = lambda message: message and list(
 )
 
 
-class WhoIs(Filter):
-    def __init__(self, my_text: str) -> None:
-        self.my_text = my_text
-
-    async def __call__(self, message: types.message) -> bool:
-        return message.text and message.text.lower().startswith(self.my_text)
-
-
-@router.message(WhoIs("гектор кто"))
+@router.message(WhoIsFilter())
 async def who_is_handler(message: types.Message):
 
     chat_user_ids = await crud.get_chat_user_ids(message.chat.id)
@@ -36,13 +28,16 @@ async def who_is_handler(message: types.Message):
     user = await crud.get_user_by_id(random.choice(chat_user_ids))
 
     question = message.text
-    question = question.replace("гектор кто", "")
-    question = question.replace("?", "")
+    question = WhoIsFilter.delete_entries(question)
 
     who_said = ["🖥 Квантовый компьютер вычислил, что ", "✨ Звезды мне сказали, что "]
-    text = random.choice(who_said) + f"{user.name} " + question
+    text = (
+        random.choice(who_said)
+        + f'<a href="https://t.me/{user.username or "#"}">{user.name}</a> '
+        + question
+    )
 
-    await message.reply(text, parse_mode=None)
+    await message.reply(text, parse_mode=ParseMode.HTML)
 
 
 @router.message(Command("stats"))

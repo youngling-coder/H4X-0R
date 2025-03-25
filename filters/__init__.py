@@ -5,14 +5,13 @@ from blacklist import BLACKLIST_TELEGRAM_IDS
 
 class WhoIsFilter(Filter):
     entries = ("гектор кто", "гектор кого")
-    
+
     @staticmethod
     def delete_entries(text: str):
         for entry in WhoIsFilter.entries:
             text = text.replace(entry, "")
 
         return text
-    
 
     async def __call__(self, message: types.Message) -> bool:
 
