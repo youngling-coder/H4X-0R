@@ -1,0 +1,24 @@
+[project]
+name = "h4x-0r"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "aiogram>=3.19.0",
+    "alembic>=1.15.1",
+    "asyncpg>=0.30.0",
+    "audioop-lts>=0.2.1",
+    "black>=25.1.0",
+    "google-generativeai>=0.8.4",
+    "httpx<0.28",
+    "pillow>=11.1.0",
+    "pyaudio>=0.2.14",
+    "pydantic>=2.10.6",
+    "pydantic-settings>=2.8.1",
+    "pydub>=0.25.1",
+    "speechrecognition>=3.14.2",
+    "sqlalchemy>=2.0.39",
+    "teratts>=1.0",
+    "torch>=2.6.0",
+]
